@@ -135,6 +135,12 @@ class PottsModel:
   """Black-box objective based on the negative energy of a Potts model.
 
     Model assumes no insert gap states.
+    
+    Fitness F of sequence x is given by F = -E(x), where
+    
+    E(x) = 0.5 * x^T H x + h^T x
+    
+    without any tuning. Here h represents the linear fields and H the quadratic couplings.
 
     Tuning the Potts Model Objective:
 
@@ -161,8 +167,8 @@ class PottsModel:
     distributions are independently scaled by field_scale and coupling_scale
     respectively by computing the energy E on a sequence x as
 
-            E = coupling_scale * 0.5*(x)^T H x + field_scale h^T x
-                  + (coupling_scale-field_scale) x_0^T H x
+            E = coupling_scale * 0.5*(x)^T H x + field_scale * h^T x
+                  + (field_scale - coupling_scale) * x_0^T H x
 
     There is also an option to filter interactions of nearby residues.
   """
