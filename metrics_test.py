@@ -65,6 +65,14 @@ class MetricsTest(parameterized.TestCase):
           expected_num_clusters=1,
       ),
       dict(
+          testcase_name='1_cluster_1_hit',
+          sequences=[[0, 0, 0, 0], [1, 2, 0, 0], [1, 2, 0, 0]],
+          fitnesses=[0, 1, 0],
+          min_fitness=0.5,
+          max_intra_cluster_hamming_distance=1,
+          expected_num_clusters=1,
+      ),
+      dict(
           testcase_name='2_clusters',
           sequences=[[0, 0, 0, 0], [1, 2, 0, 0], [1, 2, 0, 0]],
           fitnesses=[1, 1, 1],

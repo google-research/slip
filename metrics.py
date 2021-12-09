@@ -86,6 +86,8 @@ def num_clusters_for_min_fitness(
   filtered_df = df[df.fitness >= min_fitness].copy()
   if filtered_df.shape[0] == 0:
     return 0
+  if filtered_df.shape[0] == 1:
+    return 1
   sequences = np.vstack(filtered_df.sequence.values)
   pdist = pairwise_hamming_distance(sequences)
   return num_clusters(pdist, max_intra_cluster_hamming_distance)

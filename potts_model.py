@@ -182,9 +182,9 @@ class PottsModel:
     """Create an instance of this class.
 
     Args:
-      weight_matrix: 4D ndarray, dimensions of L x L x 20 x 20. Coupling matrix
+      weight_matrix: 4D ndarray, dimensions of L x L x A x A. Coupling matrix
         for Potts model.
-      field_vec:  2D ndarray, L x 20. Linear term in Potts model.
+      field_vec:  2D ndarray, L x A. Linear term in Potts model.
       coupling_scale: Scale factor for locally quadratic fitness changes (with
         respect to wildtype).
       field_scale:  Scale factor for single-site mutant fitness effects (with
@@ -234,7 +234,8 @@ class PottsModel:
     self._weight_matrix = _get_dist_cutoff_weights(
         self._weight_matrix, distance_threshold_for_nearby_residues)
 
-    # First derivative of quadratic term at wildtype. Result is seq_len x 20.
+    # First derivative of quadratic term at wildtype.
+    # Result is seq_len x vocab_size (LxA).
     self._quad_deriv = np.einsum('ijkl,jl->ik', self._weight_matrix,
                                  self._wt_onehot_seq)
 
@@ -242,7 +243,9 @@ class PottsModel:
     self._field_scale = field_scale
     self._center_fitness_to_wildtype = center_fitness_to_wildtype
     if center_fitness_to_wildtype:
-      wt_array = np.array([self.wildtype_sequence,])
+      wt_array = np.array([
+          self.wildtype_sequence,
+      ])
       self._wildtype_fitness = -self._potts_energy(wt_array).item()
 
   def evaluate(self, sequences):
@@ -250,6 +253,10 @@ class PottsModel:
     if self._center_fitness_to_wildtype:
       fitnesses -= self._wildtype_fitness
     return fitnesses
+
+  @property
+  def vocab_size(self):
+    return self._vocab_size
 
   @property
   def length(self):

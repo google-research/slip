@@ -124,7 +124,7 @@ def get_model(model_name, sequence_length,
     return linear_model.Ridge(), flatten_inputs
   elif model_name == 'cnn':
     flatten_inputs = False
-    fit_kwargs = {}
+    fit_kwargs = {'batch_size': 64, 'epochs': 500}
     return KerasModelWrapper(build_cnn_model, sequence_length, vocab_size,
                              fit_kwargs), flatten_inputs
   elif model_name == 'random_forest':

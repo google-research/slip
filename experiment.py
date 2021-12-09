@@ -205,7 +205,7 @@ def get_samples_around_wildtype(
 
 def run_regression_experiment(
     mogwai_filepath, potts_coupling_scale, potts_field_scale,
-    potts_single_mut_offset, vocab_size,
+    potts_single_mut_offset, potts_epi_offset, vocab_size,
     training_set_min_num_mutations, training_set_max_num_mutations,
     training_set_num_samples, training_set_include_singles,
     training_set_random_seed, model_name, model_random_seed,
@@ -217,7 +217,8 @@ def run_regression_experiment(
       mogwai_filepath,
       coupling_scale=potts_coupling_scale,
       field_scale=potts_field_scale,
-      single_mut_offset=potts_single_mut_offset)
+      single_mut_offset=potts_single_mut_offset,
+      epi_offset=potts_epi_offset)
 
   # Sample a training dataset.
   training_random_state = np.random.RandomState(training_set_random_seed)
@@ -260,6 +261,7 @@ def run_design_experiment(
     potts_coupling_scale,
     potts_field_scale,
     potts_single_mut_offset,
+    potts_epi_offset,
     vocab_size,
     training_set_min_num_mutations,
     training_set_max_num_mutations,
@@ -286,7 +288,8 @@ def run_design_experiment(
       mogwai_filepath,
       coupling_scale=potts_coupling_scale,
       field_scale=potts_field_scale,
-      single_mut_offset=potts_single_mut_offset)
+      single_mut_offset=potts_single_mut_offset,
+      epi_offset=potts_epi_offset)
 
   # Sample a training dataset.
   training_random_state = np.random.RandomState(training_set_random_seed)
