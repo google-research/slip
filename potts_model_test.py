@@ -15,6 +15,9 @@
 
 """Tests for synthetic_protein_landscapes.potts_model."""
 
+import os
+import tempfile
+
 from absl.testing import absltest
 from absl.testing import parameterized
 import numpy as np
@@ -45,8 +48,8 @@ class PottsModelTest(parameterized.TestCase):
     return weight_matrix, field_vec
 
   def _build_problem(self,
-                     coupling_scale=1.,
-                     field_scale=1.,
+                     coupling_scale=1.0,
+                     field_scale=1.0,
                      distance_threshold_for_nearby_residues=0,
                      wt_seq=None,
                      **kwargs):
@@ -250,6 +253,67 @@ class PottsModelTest(parameterized.TestCase):
     wt_seq = uncentered_problem.wildtype_sequence
     np.testing.assert_equal(wt_seq, centered_problem.wildtype_sequence)
     np.testing.assert_allclose(centered_problem.evaluate([wt_seq]), [0])
+
+  def test_init_asymmetric(self):
+    weight_matrix = np.zeros((3, 3, 20, 20))
+    weight_matrix[0, 1, 18, 18] = -2.5
+    weight_matrix[1, 0, 18, 18] = 2.5
+
+    field_vec = np.ones((3, 20))
+
+    wt_seq = [0, 0, 0]
+
+    with self.assertRaisesRegex(ValueError, 'symmetric'):
+      potts_model.PottsModel(weight_matrix, field_vec, wt_seq=wt_seq)
+
+
+class LoadMogwaiTest(parameterized.TestCase):
+
+  def _write_mock_mogwai_state_dict(self, symmetric):
+    l = 10
+    v = 5
+
+    weight = np.random.normal(size=(l, v, l, v))
+    if symmetric:
+      weight = weight + weight.transpose(2, 3, 0, 1)
+    bias = np.random.normal(size=(l, v))
+    query_seq = np.zeros(l)
+
+    state_dict = {
+        'bias': bias,
+        'weight': weight,
+        'query_seq': query_seq,
+    }
+
+    _, filepath = tempfile.mkstemp(suffix='.npz')
+
+    np.savez(filepath, **state_dict)
+
+    self._vocab_size = v
+    if symmetric:
+      self._mock_mogwai_filepath_symmetric = filepath
+    else:
+      self._mock_mogwai_filepath_asymmetric = filepath
+
+  def setUp(self):
+    super().setUp()
+    self._write_mock_mogwai_state_dict(symmetric=True)
+    self._write_mock_mogwai_state_dict(symmetric=False)
+
+  def tearDown(self):
+    super().tearDown()
+    os.remove(self._mock_mogwai_filepath_asymmetric)
+    os.remove(self._mock_mogwai_filepath_symmetric)
+
+  def test_asymmetric_load_raises(self):
+    with self.assertRaisesRegex(ValueError, 'symmetric'):
+      potts_model.load_from_mogwai_npz(self._mock_mogwai_filepath_asymmetric)
+
+  def test_symmetric_load(self):
+    landscape = potts_model.load_from_mogwai_npz(
+        self._mock_mogwai_filepath_symmetric)
+    np.testing.assert_allclose(landscape.weight_matrix,
+                                  landscape.weight_matrix.transpose(1, 0, 3, 2))
 
 
 if __name__ == '__main__':

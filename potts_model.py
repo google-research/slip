@@ -131,16 +131,17 @@ def _slice_params_to_subsequence(field_vec,
   return sliced_field_vec, sliced_weight_matrix
 
 
+def is_valid_couplings(couplings_llaa):
+  """Checks that the input coupling tensor is symmetric."""
+  transposed_couplings_llaa = couplings_llaa.transpose(1, 0, 3, 2)
+  is_symmetric = np.allclose(couplings_llaa, transposed_couplings_llaa)
+  return is_symmetric
+
+
 class PottsModel:
   """Black-box objective based on the negative energy of a Potts model.
 
     Model assumes no insert gap states.
-    
-    Fitness F of sequence x is given by F = -E(x), where
-    
-    E(x) = 0.5 * x^T H x + h^T x
-    
-    without any tuning. Here h represents the linear fields and H the quadratic couplings.
 
     Tuning the Potts Model Objective:
 
@@ -167,8 +168,8 @@ class PottsModel:
     distributions are independently scaled by field_scale and coupling_scale
     respectively by computing the energy E on a sequence x as
 
-            E = coupling_scale * 0.5*(x)^T H x + field_scale * h^T x
-                  + (field_scale - coupling_scale) * x_0^T H x
+            E = coupling_scale * 0.5*(x)^T H x + field_scale h^T x
+                  + (coupling_scale-field_scale) x_0^T H x
 
     There is also an option to filter interactions of nearby residues.
   """
@@ -176,14 +177,14 @@ class PottsModel:
   def __init__(self,
                weight_matrix,
                field_vec,
-               coupling_scale,
-               field_scale,
                wt_seq,
+               coupling_scale = 1.0,
+               field_scale = 1.0,
+               single_mut_offset = 0.0,
+               epi_offset = 0.0,
                start_idx = 0,
                end_idx = None,
                distance_threshold_for_nearby_residues = 1,
-               single_mut_offset = 0.0,
-               epi_offset = 0.0,
                center_fitness_to_wildtype = True):
     """Create an instance of this class.
 
@@ -191,23 +192,25 @@ class PottsModel:
       weight_matrix: 4D ndarray, dimensions of L x L x A x A. Coupling matrix
         for Potts model.
       field_vec:  2D ndarray, L x A. Linear term in Potts model.
+      wt_seq: Wildtype sequence. Integer-encoded list.
       coupling_scale: Scale factor for locally quadratic fitness changes (with
         respect to wildtype).
       field_scale:  Scale factor for single-site mutant fitness effects (with
         respect to wildtype).
-      wt_seq: Wildtype sequence. Integer-encoded list.
+      single_mut_offset: Shift of single mutant fitness change about wildtype.
+      epi_offset: Shift of pairwise epistasis distribution (computed as
+        F_{12}-F_{1}-F_{2}+F_{0} for mutants 1 and 2 on background 0) around
+        wildtype sequence.
       start_idx: Model restricted to sub-sequence [start_idx:end_idx].
       end_idx: Model restricted to sub-sequence [start_idx:end_idx].
       distance_threshold_for_nearby_residues: Coordinates i,j in the sequence
         will be considered close to the diagonal if abs(i - j) < this. The
         couplings between these residues will be set to zero.
-      single_mut_offset: Shift of single mutant fitness change about wildtype.
-      epi_offset: Shift of pairwise epistasis distribution (computed as
-        F_{12}-F_{1}-F_{2}+F_{0} for mutants 1 and 2 on background 0) around
-        wildtype sequence.
       center_fitness_to_wildtype: Whether to shift the output fitnesses such
         that the fitness of the wildtype is 0.
     """
+    if not is_valid_couplings(weight_matrix):
+      raise ValueError('Couplings tensor must be symmetric.')
     self._weight_matrix = weight_matrix
     self._field_vec = np.asarray(field_vec)
     self._vocab_size = self._field_vec.shape[1]
@@ -329,10 +332,8 @@ def load_from_mogwai_npz(filepath, **init_kwargs):
     bias = -1 * state_dict['bias']
     wt_seq = state_dict['query_seq']
 
-  # Reshape the couplings from Mogwai.
-  l = couplings.shape[0]
-  a = couplings.shape[1]
-  couplings = couplings.reshape([l, l, a, a])
+  # Reshape the couplings from Mogwai. L, A, L, A -> L, L, A, A
+  couplings = np.moveaxis(couplings, [0, 1, 2, 3], [0, 2, 1, 3])
 
   landscape = PottsModel(
       weight_matrix=couplings, field_vec=bias, wt_seq=wt_seq, **init_kwargs)
