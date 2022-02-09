@@ -87,8 +87,8 @@ def get_distance_split_df(
   """
   distance_from_reference = df.sequence.apply(
       utils.hamming_distance, y=reference_seq)
-  train_df = df[distance_from_reference <= distance_threshold]
-  test_df = df[~df.index.isin(train_df.index)]
+  train_df = df[distance_from_reference <= distance_threshold].copy()
+  test_df = df[~df.index.isin(train_df.index)].copy()
   return (train_df, test_df)
 
 
