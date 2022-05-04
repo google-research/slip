@@ -271,6 +271,60 @@ class UtilsTest(parameterized.TestCase):
     with self.assertRaisesRegex(AssertionError, 'equal length'):
       utils.add_seqs(seq_a, seq_b, ref_seq)
 
+  @parameterized.parameters(
+      ((10, 15, 2, 1), ((10, 2), (15, 1))),
+      ((4, 2, 19, 1), ((4, 19), (2, 1))),
+  )
+  def test_get_mutation_pair_from_tensor_index(self, tensor_index, expected_mutation_pair):
+    self.assertEqual(utils.get_mutation_pair_from_tensor_index(tensor_index), expected_mutation_pair)
+
+
+class TensorUtilsTest(parameterized.TestCase):
+  # 2x2x3x3
+  mock_tensor = [
+                    [
+                        [
+                            [-10, 1, 1],
+                            [1, 8, 1],
+                            [2, 0, 1],
+                        ],
+                        [
+                            [0, 1, 6],
+                            [1, 1, -10],
+                            [2, 0, 0],
+                        ],
+                    ],
+                    [
+                        [
+                            [0, 1, 1],
+                            [1, 1, 1],
+                            [0, 0, 10],
+                        ],
+                        [
+                            [0, 1, 6],
+                            [1, 1, 1],
+                            [2, 0, -9],
+                        ],
+                    ]
+                ]
+  mock_tensor = np.array(mock_tensor)
+
+  def test_get_top_n_4d_tensor_indexes(self):
+    best_interactions = utils.get_top_n_4d_tensor_indexes(self.mock_tensor, 2, reverse=False)
+    self.assertEqual(
+        self.mock_tensor[best_interactions[0]], 10)
+    self.assertEqual(
+        self.mock_tensor[best_interactions[1]], 8)
+
+  def test_get_top_n_4d_tensor_indexes_reverse(self):
+    worst_interactions = utils.get_top_n_4d_tensor_indexes(
+        self.mock_tensor, 3, reverse=True)
+    self.assertEqual(
+        self.mock_tensor[worst_interactions[0]], -10)
+    self.assertEqual(
+        self.mock_tensor[worst_interactions[1]], -10)
+    self.assertEqual(
+        self.mock_tensor[worst_interactions[2]], -9)
 
 if __name__ == '__main__':
   absltest.main()

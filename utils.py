@@ -18,7 +18,7 @@
 import collections
 import itertools
 
-from typing import Optional, Sequence, Tuple, List
+from typing import Iterable, Optional, Sequence, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -192,7 +192,8 @@ def get_num_mutations(seqs, parent_seq):
 
 
 def apply_mutations(parent,
-                    mutations):
+                    mutations,
+                    allow_same = False):
   """Returns a copy of `parent` with `mutations` applied.
 
   Args:
@@ -212,7 +213,7 @@ def apply_mutations(parent,
   # assert all mutation locations are unique
   assert len(set(locations)) == len(locations)
 
-  if (parent[locations] == values).any():
+  if (parent[locations] == values).any() and not allow_same:
     raise ValueError('Invalid mutation: attempting to mutate the parent '
                      'to a value it already has.')
 
@@ -279,3 +280,52 @@ def one_hot_and_flatten(array_2d_sequence, num_classes):
   x = onehot(array_2d_sequence, num_classes=num_classes)
   x = np.reshape(x, [x.shape[0], -1])  # flatten
   return x
+
+
+def get_mutation_pair_from_tensor_index(tensor_index: Iterable) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+    """Returns a mutation pair corresponding to an epistasis tensor index.
+    Example usage:
+    >>> tensor_index = [1, 0, 0]
+    >>> seq_b = [0, 2, 0]
+    >>> ref_seq = [0, 0, 0]
+    >>> combine_seqs(seq_a, seq_b,  ref_seq)
+    [[1, 2, 0]]
+    Args:
+      tensor_index: 4-element tuple index into tensor of dimension LxLxAxA.
+
+    Returns:
+      2-tuple of mutations ((i, a), (j, b)), where i, j are positions and a, b are amino acids.
+    """
+    if len(tensor_index) != 4:
+        raise ValueError('Must be an index of a tensor of dimension LxLxAxA')
+    position_0 = tensor_index[0]
+    aa_0 = tensor_index[2]
+    position_1 = tensor_index[1]
+    aa_1 = tensor_index[3]
+    return ((position_0, aa_0), (position_1, aa_1))
+
+
+def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, reverse: bool = False) -> List[Tuple]:
+  """Returns the coordinates (i, j, a, b) for the `top_n` indexes of mutations with high effect.
+
+  Args:
+    interaction_tensor: LxLxAxA 4D tensor.
+    top_n: the number of interactions to return.
+    reverse: if True, return the coordinates with lowest effect.
+
+  Returns:
+    A list of (position, position, amino acid, amino acid) index tuples.
+  """
+  # TODO(neilthomas) should I be caching the sorted weight matrix? So I don't have to do this...
+  sorted_flat_indexes = np.argsort(interaction_tensor, axis=None)
+
+  if reverse == True:
+    top_n_flat_indexes = sorted_flat_indexes[:top_n]
+  else:
+    n_from_top = -top_n - 1
+    top_n_flat_indexes = sorted_flat_indexes[:n_from_top:-1]
+
+  top_indexes = np.unravel_index(
+    top_n_flat_indexes, shape=interaction_tensor.shape)
+  index_list = np.vstack(top_indexes).T.tolist()
+  return [tuple(idx) for idx in index_list]
