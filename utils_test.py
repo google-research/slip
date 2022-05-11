@@ -310,15 +310,15 @@ class TensorUtilsTest(parameterized.TestCase):
   mock_tensor = np.array(mock_tensor)
 
   def test_get_top_n_4d_tensor_indexes(self):
-    best_interactions = utils.get_top_n_4d_tensor_indexes(self.mock_tensor, 2, reverse=False)
+    best_interactions = utils.get_top_n_4d_tensor_indexes(self.mock_tensor, 2, lowest=False)
     self.assertEqual(
         self.mock_tensor[best_interactions[0]], 10)
     self.assertEqual(
         self.mock_tensor[best_interactions[1]], 8)
 
-  def test_get_top_n_4d_tensor_indexes_reverse(self):
+  def test_get_top_n_4d_tensor_indexes_lowest(self):
     worst_interactions = utils.get_top_n_4d_tensor_indexes(
-        self.mock_tensor, 3, reverse=True)
+        self.mock_tensor, 3, lowest=True)
     self.assertEqual(
         self.mock_tensor[worst_interactions[0]], -10)
     self.assertEqual(

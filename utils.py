@@ -305,21 +305,20 @@ def get_mutation_pair_from_tensor_index(tensor_index: Iterable) -> Tuple[Tuple[i
     return ((position_0, aa_0), (position_1, aa_1))
 
 
-def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, reverse: bool = False) -> List[Tuple]:
+def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, lowest: bool = False) -> List[Tuple]:
   """Returns the coordinates (i, j, a, b) for the `top_n` indexes of mutations with high effect.
 
   Args:
     interaction_tensor: LxLxAxA 4D tensor.
     top_n: the number of interactions to return.
-    reverse: if True, return the coordinates with lowest effect.
+    lowest: if True, return the coordinates with lowest effect.
 
   Returns:
     A list of (position, position, amino acid, amino acid) index tuples.
   """
-  # TODO(neilthomas) should I be caching the sorted weight matrix? So I don't have to do this...
   sorted_flat_indexes = np.argsort(interaction_tensor, axis=None)
 
-  if reverse == True:
+  if lowest == True:
     top_n_flat_indexes = sorted_flat_indexes[:top_n]
   else:
     n_from_top = -top_n - 1
