@@ -199,8 +199,9 @@ def apply_mutations(parent,
   Args:
     parent: 1D integer encoded sequence.
     mutations: A sequence of (position, mutation) tuples. A ValueError is raised
-      if these (1) are overlapping, and  (2) mutate to values that are the same
-      as the parent.
+      if these are overlapping.
+    allow_same: By default, a ValueError is raised if `mutations` mutate to values
+    that are the same as the parent. If this flag is True, this check is ignored.
   """
   parent = parent.copy()
   mutations = np.array(mutations)
@@ -211,7 +212,9 @@ def apply_mutations(parent,
   values = mutations[:, 1]
 
   # assert all mutation locations are unique
-  assert len(set(locations)) == len(locations)
+  if not len(set(locations)) == len(locations):
+    raise ValueError('Invalid mutation: not all mutation locations are unique.')
+
 
   if (parent[locations] == values).any() and not allow_same:
     raise ValueError('Invalid mutation: attempting to mutate the parent '
