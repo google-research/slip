@@ -48,7 +48,7 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Iterable[Tuple[int, in
   return all_samples
 
 
-def get_test_seqs_for_landscape(landscape: potts_model.PottsModel,
+def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
                                 distance: int,
                                 n: int,
                                 adaptive: bool = True,
@@ -65,7 +65,7 @@ def get_test_seqs_for_landscape(landscape: potts_model.PottsModel,
     rng: Random state.
 
   Return:
-    Sequences.
+    A List of sequences.
   """
   if distance % 2 != 0:
     raise ValueError('Odd distance not supported.')
