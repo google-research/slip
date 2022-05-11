@@ -54,23 +54,24 @@ def get_test_seqs_for_landscape(landscape: potts_model.PottsModel,
                                 adaptive: bool = True,
                                 top_k: Optional[int] = None,
                                 rng: np.random.Generator = np.random.default_rng(0)):
-  """Sample n epistatic variants from distance
+  """Return `n` variants at `distance` that are enriched for epistasis on `landscape`.
 
   Args:
-    landscape: the landscape in question
-    distance: the distance desired for the test set
-    n: the number of variants in the test set
-    adaptive: a boolean indicating whether you want the set to be enriched for adaptive or deleterious epistasis
-    rng: a random state. required so that there is no default randomness...
+    landscape: The landscape.
+    distance: The number of mutations from the landscape wildtype. Raises a ValueError if not an even number.
+    n: The number of variants in the test set.
+    adaptive: When True (False), return sequences enriched for adaptive (deleterious) epistasis
+    top_k: The number of highest magnitude interactions to use for sampling.
+    rng: Random state.
 
   Return:
-    sequences for the test set
+    Sequences.
   """
   if distance % 2 != 0:
     raise ValueError('Odd distance not supported.')
 
-  # take enough so that you can get unique variants... but not too many that you blow up
-  # another option is to split into a few rounds. Do one, see if you get it, try again, etc.
+  # TODO(nthomas) another option is to do this combination in batches, until the test set is full or the
+  # input mutations are exhausted
   if not top_k:
     top_k = n
   tensor_indexes = utils.get_top_n_4d_tensor_indexes(landscape.epistasis_tensor, top_k, lowest=not adaptive)
@@ -88,7 +89,7 @@ def get_test_seqs_for_landscape(landscape: potts_model.PottsModel,
   return test_seqs
 
 
-def _filter_elements_to_length(elements, length):
+def _filter_elements_to_length(elements: Iterable[Iterable], length: int) -> List[Iterable]:
   lengths = [len(x) for x in elements]
   to_include = [l == length for l in lengths]
   filtered = []
