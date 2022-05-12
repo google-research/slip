@@ -36,8 +36,8 @@ class PottsModelTest(parameterized.TestCase):
     weight_matrix[0, 0, 1, 0] = 3.0 / 2
     weight_matrix[0, 1, 0, 0] = 2.5
     weight_matrix[1, 0, 0, 0] = 2.5
-    weight_matrix[0, 1, 18, 18] = -2.5
-    weight_matrix[1, 0, 18, 18] = -2.5
+    weight_matrix[0, 1, 19, 18] = -2.5
+    weight_matrix[1, 0, 18, 19] = -2.5
     weight_matrix[0, 2, 0, 0] = 4.0
     weight_matrix[2, 0, 0, 0] = 4.0
 
@@ -188,6 +188,8 @@ class PottsModelTest(parameterized.TestCase):
   def test_single_mut_shift(self):
     offset = 1.0
     field_scale = 2.0
+    coupling_scale = 5.3
+    epi_offset = -0.8
     wt_seq = [0, 0, 0]
     base_problem = self._build_problem(
         wt_seq=wt_seq,
@@ -197,7 +199,9 @@ class PottsModelTest(parameterized.TestCase):
         wt_seq=wt_seq,
         distance_threshold_for_nearby_residues=1,
         field_scale=field_scale,
-        single_mut_offset=offset)
+        single_mut_offset=offset,
+        coupling_scale=coupling_scale,
+        epi_offset=epi_offset)
 
     single_mutants = []
     for k in range(3):
@@ -217,6 +221,8 @@ class PottsModelTest(parameterized.TestCase):
   def test_epistasis_shift(self):
     offset = 1.0
     coupling_scale = 2.0
+    mut_offset = -4.5
+    field_scale = 3.1
     wt_seq = [0, 0, 0]
     base_problem = self._build_problem(
         wt_seq=wt_seq, distance_threshold_for_nearby_residues=1)
@@ -224,7 +230,9 @@ class PottsModelTest(parameterized.TestCase):
         wt_seq=wt_seq,
         distance_threshold_for_nearby_residues=1,
         coupling_scale=coupling_scale,
-        epi_offset=offset)
+        epi_offset=offset,
+        field_scale=field_scale,
+        single_mut_offset=mut_offset)
 
     base_wt_fit = base_problem.evaluate([wt_seq])[0]
     shifted_wt_fit = shifted_problem.evaluate([wt_seq])[0]
