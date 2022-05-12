@@ -27,6 +27,6 @@ pip3 install -q -r requirements.txt
 
 To run the unit tests:
 ```
-bash -c 'for f in *_test.py; do python3 $f || exit 1; done'
+bash -c 'for f in *_test.py; do python3 $f || exit 1; done
 ```
 
