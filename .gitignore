@@ -1,4 +1,5 @@
-env/
 __pycache__/
+.vscode/
 data/
+env/
 env37/

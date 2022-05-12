@@ -310,6 +310,7 @@ class PottsModel:
       A = H.shape[2]
       epistasis_tensor = np.zeros_like(H)
 
+      # TODO(nthomas) vectorize
       for i in range(L):
           for j in range(L):
               a = self.wildtype_sequence[i]

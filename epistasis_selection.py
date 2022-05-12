@@ -1,5 +1,20 @@
+# coding=utf-8
+# Copyright 2021 The Google Research Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import itertools
-from typing import Optional, Iterable, Tuple, List
+from typing import Optional, Iterable, Tuple, List, Sequence
 
 import numpy as np
 
@@ -7,15 +22,15 @@ import potts_model
 import utils
 
 
-def combine_k_rounds(num_rounds: int, mutations: Iterable[Iterable[Tuple[int, int]]]) -> List[List[Tuple[int, int]]]:
+def combine_k_rounds(num_rounds: int, mutations: Iterable[Sequence[Tuple[int, int]]]) -> List[Sequence[Tuple[int, int]]]:
   """Return the result of combining `mutations` for `num_rounds`.
 
   Starting with a pool of M `mutations` m_1 ... m_M, stack them for K=`num_rounds` rounds. For example,
-  for K=3 rounds of combination, this will result in every variant (m_i + m_j + m_k), for i, j, k \in M.
+  for K=3 rounds of combination, this will result in every variant (m_i + m_j + m_k), for i, j, k \\in M.
   Be careful of memory usage, as this can be very large due to combinatorial possibilities.
-  In the best case, this scales with {M \choose K}. But if mutations overlap at P positions,
-  combining them produces 2^{P} variants. So in the worst case, this will produce
-  {M \choose K} * 2^{P} variants. See the definition for `utils.merge_mutation_sets` for more on
+  In the best case, this scales with {M \\choose K}. But if mutations overlap at P positions,
+  combining them produces 1 + 2^{P} variants. So in the worst case, this will produce
+  {M \\choose K} * 2^{P} variants. See the definition for `utils.merge_mutation_sets` for more on
   mutation merging.
 
   Args:
@@ -29,8 +44,8 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Iterable[Tuple[int, in
 
   """
   if num_rounds == 0:
-    return mutations
-  mutations_to_combine = list(itertools.combinations(mutations, num_rounds + 1))
+    return list(mutations)
+  mutations_to_combine = itertools.combinations(mutations, num_rounds + 1)
 
   all_samples = []
 
@@ -44,7 +59,7 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Iterable[Tuple[int, in
       for merged in prev_round:
         next_round.extend(utils.merge_mutation_sets(merged, new_mutation))
       prev_round = next_round
-    all_samples.extend(next_round)
+    all_samples.extend(prev_round)
   return all_samples
 
 
@@ -53,8 +68,11 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
                                 n: int,
                                 adaptive: bool = True,
                                 top_k: Optional[int] = None,
-                                rng: np.random.Generator = np.random.default_rng(0)):
+                                random_state: np.random.RandomState = np.random.RandomState(0)):
   """Return `n` variants at `distance` that are enriched for epistasis on `landscape`.
+
+  To construct epistatic sequences, the top epistatic pairs are taken directly from the landscape
+  epistasis tensor, and used as building blocks for higher order mutants.
 
   Args:
     landscape: The landscape.
@@ -62,7 +80,7 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
     n: The number of variants in the test set.
     adaptive: When True (False), return sequences enriched for adaptive (deleterious) epistasis
     top_k: The number of highest magnitude interactions to use for sampling.
-    rng: Random state.
+    random_state: An instance of np.random.RandomState
 
   Return:
     A List of sequences.
@@ -75,25 +93,15 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   if not top_k:
     top_k = n
   tensor_indexes = utils.get_top_n_4d_tensor_indexes(landscape.epistasis_tensor, top_k, lowest=not adaptive)
-  mutation_pairs = [utils.get_mutation_pair_from_tensor_index(
-      t) for t in tensor_indexes]
+  mutation_pairs = [utils.get_mutation_pair_from_tensor_index(t) for t in tensor_indexes]
 
 
   num_rounds = distance // 2
   all_combined = combine_k_rounds(num_rounds, mutation_pairs)
-  all_combined = _filter_elements_to_length(all_combined, distance)
+  all_combined = [element in all_combined if len(element) == distance]
+
   if len(all_combined) < n:
     raise ValueError(f'Not enough ({len(all_combined)} < {n}) mutants at distance {distance}, try increasing `top_k`.')
-  subset = rng.choice(all_combined, n, replace=False)
-  test_seqs = [utils.apply_mutations(landscape.wildtype_sequence, m) for m in subset]
-  return test_seqs
-
-
-def _filter_elements_to_length(elements: Iterable[Iterable], length: int) -> List[Iterable]:
-  lengths = [len(x) for x in elements]
-  to_include = [l == length for l in lengths]
-  filtered = []
-  for i, include in enumerate(to_include):
-    if include is True:
-      filtered.append(elements[i])
-  return filtered
+  subset = random_state.choice(all_combined, n, replace=False)
+  seqs = [utils.apply_mutations(landscape.wildtype_sequence, m) for m in subset]
+  return seqs

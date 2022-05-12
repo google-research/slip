@@ -271,13 +271,6 @@ class UtilsTest(parameterized.TestCase):
     with self.assertRaisesRegex(AssertionError, 'equal length'):
       utils.add_seqs(seq_a, seq_b, ref_seq)
 
-  @parameterized.parameters(
-      ((10, 15, 2, 1), ((10, 2), (15, 1))),
-      ((4, 2, 19, 1), ((4, 19), (2, 1))),
-  )
-  def test_get_mutation_pair_from_tensor_index(self, tensor_index, expected_mutation_pair):
-    self.assertEqual(utils.get_mutation_pair_from_tensor_index(tensor_index), expected_mutation_pair)
-
 
 class TensorUtilsTest(parameterized.TestCase):
   # 2x2x3x3
@@ -325,6 +318,14 @@ class TensorUtilsTest(parameterized.TestCase):
         self.mock_tensor[worst_interactions[1]], -10)
     self.assertEqual(
         self.mock_tensor[worst_interactions[2]], -9)
+
+    @parameterized.parameters(
+        ((10, 15, 2, 1), ((10, 2), (15, 1))),
+        ((4, 2, 19, 1), ((4, 19), (2, 1))),
+    )
+    def test_get_mutation_pair_from_tensor_index(self, tensor_index, expected_mutation_pair):
+    self.assertEqual(utils.get_mutation_pair_from_tensor_index(
+        tensor_index), expected_mutation_pair)
 
 if __name__ == '__main__':
   absltest.main()

@@ -131,39 +131,6 @@ class SelectionTest(parameterized.TestCase):
       actual_mutants_at_distance = [m for m in actual_mutants if len(m)==distance]
       self.assertSetEqual(set(actual_mutants_at_distance), set(expected_set))
 
-  @parameterized.named_parameters(
-      dict(
-          testcase_name='pick4',
-          elements=[
-              (1, 2, 3, 4),
-              (1, 2, 3, 4, 5),
-              (1, 2, 2, 4),
-              (1, 2, 3),
-          ],
-          length=4,
-          expected=[
-              (1, 2, 3, 4),
-              (1, 2, 2, 4),
-          ],
-      ),
-      dict(
-          testcase_name='pick5',
-          elements=[
-              (1, 2, 3, 4),
-              (1, 2, 3, 4, 5),
-              (1, 2, 2, 4),
-              (1, 2, 3),
-          ],
-          length=5,
-          expected=[
-              (1, 2, 3, 4, 5),
-          ],
-      ),
-  )
-  def test_filter_to_length(self, elements, length, expected):
-      actual = epistasis_selection._filter_elements_to_length(elements, length)
-      self.assertItemsEqual(actual, expected)
-
 
 if __name__ == '__main__':
   absltest.main()

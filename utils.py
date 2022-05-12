@@ -201,7 +201,7 @@ def apply_mutations(parent,
     mutations: A sequence of (position, mutation) tuples. A ValueError is raised
       if these are overlapping.
     allow_same: By default, a ValueError is raised if `mutations` mutate to values
-    that are the same as the parent. If this flag is True, this check is ignored.
+      that are the same as the parent. If this flag is True, this check is ignored.
   """
   parent = parent.copy()
   mutations = np.array(mutations)
@@ -285,7 +285,7 @@ def one_hot_and_flatten(array_2d_sequence, num_classes):
   return x
 
 
-def get_mutation_pair_from_tensor_index(tensor_index: Iterable) -> Tuple[Tuple[int, int], Tuple[int, int]]:
+def get_mutation_pair_from_tensor_index(tensor_index: Sequence) -> Tuple[Tuple[int, int], Tuple[int, int]]:
     """Returns a mutation pair corresponding to an epistasis tensor index.
     Example usage:
     >>> tensor_index = [1, 0, 0]
@@ -319,15 +319,12 @@ def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, lowe
   Returns:
     A list of (position, position, amino acid, amino acid) index tuples.
   """
-  sorted_flat_indexes = np.argsort(interaction_tensor, axis=None)
-
   if lowest == True:
-    top_n_flat_indexes = sorted_flat_indexes[:top_n]
+    sorted_flat_indexes = np.argsort(interaction_tensor, axis=None)
   else:
-    n_from_top = -top_n - 1
-    top_n_flat_indexes = sorted_flat_indexes[:n_from_top:-1]
+    sorted_flat_indexes = np.argsort(-1 * interaction_tensor, axis=None)
 
-  top_indexes = np.unravel_index(
-    top_n_flat_indexes, shape=interaction_tensor.shape)
+  top_n_flat_indexes = sorted_flat_indexes[:top_n]
+  top_indexes = np.unravel_index(top_n_flat_indexes, shape=interaction_tensor.shape)
   index_list = np.vstack(top_indexes).T.tolist()
   return [tuple(idx) for idx in index_list]
