@@ -1,6 +1,7 @@
 This is not an officially supported Google product.
 
 # SLIP - Synthetic Landscape Inference for Proteins
+![](https://github.com/google-research/slip/workflows/Build/badge.svg)
 
 SLIP is a sandbox environment for engineering protein sequences with
 synthetic fitness functions.
