@@ -92,13 +92,11 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   # input mutations are exhausted
   if not top_k:
     top_k = n
-  tensor_indexes = utils.get_top_n_4d_tensor_indexes(landscape.epistasis_tensor, top_k, lowest=not adaptive)
-  mutation_pairs = [utils.get_mutation_pair_from_tensor_index(t) for t in tensor_indexes]
-
+  mutation_pairs = utils.get_top_n_mutation_pairs(landscape.epistasis_tensor, top_k, lowest=not adaptive)
 
   num_rounds = distance // 2
   all_combined = combine_k_rounds(num_rounds, mutation_pairs)
-  all_combined = [element in all_combined if len(element) == distance]
+  all_combined = [element for element in all_combined if len(element) == distance]
 
   if len(all_combined) < n:
     raise ValueError(f'Not enough ({len(all_combined)} < {n}) mutants at distance {distance}, try increasing `top_k`.')

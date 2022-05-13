@@ -274,7 +274,7 @@ class UtilsTest(parameterized.TestCase):
 
 class TensorUtilsTest(parameterized.TestCase):
   # 2x2x3x3
-  mock_tensor = [
+  mock_tensor = np.array([
                     [
                         [
                             [-10, 1, 1],
@@ -299,33 +299,25 @@ class TensorUtilsTest(parameterized.TestCase):
                             [2, 0, -9],
                         ],
                     ]
-                ]
-  mock_tensor = np.array(mock_tensor)
+                ])
 
-  def test_get_top_n_4d_tensor_indexes(self):
-    best_interactions = utils.get_top_n_4d_tensor_indexes(self.mock_tensor, 2, lowest=False)
-    self.assertEqual(
-        self.mock_tensor[best_interactions[0]], 10)
-    self.assertEqual(
-        self.mock_tensor[best_interactions[1]], 8)
+  def _get_tensor_idx_from_pair(self, pair):
+      return (pair[0][0], pair[1][0], pair[0][1], pair[1][1])
 
-  def test_get_top_n_4d_tensor_indexes_lowest(self):
-    worst_interactions = utils.get_top_n_4d_tensor_indexes(
-        self.mock_tensor, 3, lowest=True)
-    self.assertEqual(
-        self.mock_tensor[worst_interactions[0]], -10)
-    self.assertEqual(
-        self.mock_tensor[worst_interactions[1]], -10)
-    self.assertEqual(
-        self.mock_tensor[worst_interactions[2]], -9)
 
-    @parameterized.parameters(
-        ((10, 15, 2, 1), ((10, 2), (15, 1))),
-        ((4, 2, 19, 1), ((4, 19), (2, 1))),
-    )
-    def test_get_mutation_pair_from_tensor_index(self, tensor_index, expected_mutation_pair):
-    self.assertEqual(utils.get_mutation_pair_from_tensor_index(
-        tensor_index), expected_mutation_pair)
+  def test_get_top_n_mutation_pairs(self):
+    best_interactions = utils.get_top_n_mutation_pairs(self.mock_tensor, 2, lowest=False)
+    best_pair = best_interactions[0]
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(best_pair)], 10)
+
+    second_best_pair = best_interactions[1]
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(second_best_pair)], 8)
+
+  def test_get_top_n_mutation_pairs_lowest(self):
+    worst_interactions = utils.get_top_n_mutation_pairs(self.mock_tensor, 3, lowest=True)
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(worst_interactions[0])], -10)
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(worst_interactions[1])], -10)
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(worst_interactions[2])], -9)
 
 if __name__ == '__main__':
   absltest.main()

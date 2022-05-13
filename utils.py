@@ -285,31 +285,8 @@ def one_hot_and_flatten(array_2d_sequence, num_classes):
   return x
 
 
-def get_mutation_pair_from_tensor_index(tensor_index: Sequence) -> Tuple[Tuple[int, int], Tuple[int, int]]:
-    """Returns a mutation pair corresponding to an epistasis tensor index.
-    Example usage:
-    >>> tensor_index = [1, 0, 0]
-    >>> seq_b = [0, 2, 0]
-    >>> ref_seq = [0, 0, 0]
-    >>> combine_seqs(seq_a, seq_b,  ref_seq)
-    [[1, 2, 0]]
-    Args:
-      tensor_index: 4-element tuple index into tensor of dimension LxLxAxA.
-
-    Returns:
-      2-tuple of mutations ((i, a), (j, b)), where i, j are positions and a, b are amino acids.
-    """
-    if len(tensor_index) != 4:
-        raise ValueError('Must be an index of a tensor of dimension LxLxAxA')
-    position_0 = tensor_index[0]
-    aa_0 = tensor_index[2]
-    position_1 = tensor_index[1]
-    aa_1 = tensor_index[3]
-    return ((position_0, aa_0), (position_1, aa_1))
-
-
-def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, lowest: bool = False) -> List[Tuple]:
-  """Returns the coordinates (i, j, a, b) for the `top_n` indexes of mutations with high effect.
+def get_top_n_mutation_pairs(interaction_tensor: np.ndarray, top_n: int, lowest: bool = False) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+  """Returns the mutation-pairs for the `top_n` indexes of mutation-pairs with high effect.
 
   Args:
     interaction_tensor: LxLxAxA 4D tensor.
@@ -317,8 +294,11 @@ def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, lowe
     lowest: if True, return the coordinates with lowest effect.
 
   Returns:
-    A list of (position, position, amino acid, amino acid) index tuples.
+    A list of 2-tuple of mutations ((i, a), (j, b)), where i, j are positions and a, b are amino acids.
   """
+  if len(interaction_tensor.shape) != 4:
+      raise ValueError('Input tensor must be 4D')
+
   if lowest == True:
     sorted_flat_indexes = np.argsort(interaction_tensor, axis=None)
   else:
@@ -327,4 +307,12 @@ def get_top_n_4d_tensor_indexes(interaction_tensor: np.ndarray, top_n: int, lowe
   top_n_flat_indexes = sorted_flat_indexes[:top_n]
   top_indexes = np.unravel_index(top_n_flat_indexes, shape=interaction_tensor.shape)
   index_list = np.vstack(top_indexes).T.tolist()
-  return [tuple(idx) for idx in index_list]
+
+  def _convert_to_mutation_pair(tensor_index):
+    position_0 = tensor_index[0]
+    aa_0 = tensor_index[2]
+    position_1 = tensor_index[1]
+    aa_1 = tensor_index[3]
+    return ((position_0, aa_0), (position_1, aa_1))
+
+  return [_convert_to_mutation_pair(tuple(idx)) for idx in index_list]
