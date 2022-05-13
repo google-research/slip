@@ -11,6 +11,8 @@ In progress
 
 ## Instructions
 
+Tested on python >= 3.7
+
 We recommend installing into a virtual environment to isolate dependencies (see https://docs.python.org/3/library/venv.html).
 
 ```

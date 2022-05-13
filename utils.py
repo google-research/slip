@@ -18,7 +18,7 @@
 import collections
 import itertools
 
-from typing import Optional, Sequence, Tuple, List
+from typing import Iterable, Optional, Sequence, Tuple, List
 
 import numpy as np
 import pandas as pd
@@ -192,14 +192,16 @@ def get_num_mutations(seqs, parent_seq):
 
 
 def apply_mutations(parent,
-                    mutations):
+                    mutations,
+                    allow_same = False):
   """Returns a copy of `parent` with `mutations` applied.
 
   Args:
     parent: 1D integer encoded sequence.
     mutations: A sequence of (position, mutation) tuples. A ValueError is raised
-      if these (1) are overlapping, and  (2) mutate to values that are the same
-      as the parent.
+      if these are overlapping.
+    allow_same: By default, a ValueError is raised if `mutations` mutate to values
+      that are the same as the parent. If this flag is True, this check is ignored.
   """
   parent = parent.copy()
   mutations = np.array(mutations)
@@ -210,9 +212,11 @@ def apply_mutations(parent,
   values = mutations[:, 1]
 
   # assert all mutation locations are unique
-  assert len(set(locations)) == len(locations)
+  if not len(set(locations)) == len(locations):
+    raise ValueError('Invalid mutation: not all mutation locations are unique.')
 
-  if (parent[locations] == values).any():
+
+  if (parent[locations] == values).any() and not allow_same:
     raise ValueError('Invalid mutation: attempting to mutate the parent '
                      'to a value it already has.')
 
@@ -279,3 +283,36 @@ def one_hot_and_flatten(array_2d_sequence, num_classes):
   x = onehot(array_2d_sequence, num_classes=num_classes)
   x = np.reshape(x, [x.shape[0], -1])  # flatten
   return x
+
+
+def get_top_n_mutation_pairs(interaction_tensor: np.ndarray, top_n: int, lowest: bool = False) -> List[Tuple[Tuple[int, int], Tuple[int, int]]]:
+  """Returns the mutation-pairs for the `top_n` indexes of mutation-pairs with high effect.
+
+  Args:
+    interaction_tensor: LxLxAxA 4D tensor.
+    top_n: the number of interactions to return.
+    lowest: if True, return the coordinates with lowest effect.
+
+  Returns:
+    A list of 2-tuple of mutations ((i, a), (j, b)), where i, j are positions and a, b are amino acids.
+  """
+  if len(interaction_tensor.shape) != 4:
+      raise ValueError('Input tensor must be 4D')
+
+  if lowest == True:
+    sorted_flat_indexes = np.argsort(interaction_tensor, axis=None)
+  else:
+    sorted_flat_indexes = np.argsort(-1 * interaction_tensor, axis=None)
+
+  top_n_flat_indexes = sorted_flat_indexes[:top_n]
+  top_indexes = np.unravel_index(top_n_flat_indexes, shape=interaction_tensor.shape)
+  index_list = np.vstack(top_indexes).T.tolist()
+
+  def _convert_to_mutation_pair(tensor_index):
+    position_0 = tensor_index[0]
+    aa_0 = tensor_index[2]
+    position_1 = tensor_index[1]
+    aa_1 = tensor_index[3]
+    return ((position_0, aa_0), (position_1, aa_1))
+
+  return [_convert_to_mutation_pair(tuple(idx)) for idx in index_list]

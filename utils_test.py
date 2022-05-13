@@ -272,5 +272,52 @@ class UtilsTest(parameterized.TestCase):
       utils.add_seqs(seq_a, seq_b, ref_seq)
 
 
+class TensorUtilsTest(parameterized.TestCase):
+  # 2x2x3x3
+  mock_tensor = np.array([
+                    [
+                        [
+                            [-10, 1, 1],
+                            [1, 8, 1],
+                            [2, 0, 1],
+                        ],
+                        [
+                            [0, 1, 6],
+                            [1, 1, -10],
+                            [2, 0, 0],
+                        ],
+                    ],
+                    [
+                        [
+                            [0, 1, 1],
+                            [1, 1, 1],
+                            [0, 0, 10],
+                        ],
+                        [
+                            [0, 1, 6],
+                            [1, 1, 1],
+                            [2, 0, -9],
+                        ],
+                    ]
+                ])
+
+  def _get_tensor_idx_from_pair(self, pair):
+      return (pair[0][0], pair[1][0], pair[0][1], pair[1][1])
+
+
+  def test_get_top_n_mutation_pairs(self):
+    best_interactions = utils.get_top_n_mutation_pairs(self.mock_tensor, 2, lowest=False)
+    best_pair = best_interactions[0]
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(best_pair)], 10)
+
+    second_best_pair = best_interactions[1]
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(second_best_pair)], 8)
+
+  def test_get_top_n_mutation_pairs_lowest(self):
+    worst_interactions = utils.get_top_n_mutation_pairs(self.mock_tensor, 3, lowest=True)
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(worst_interactions[0])], -10)
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(worst_interactions[1])], -10)
+    self.assertEqual(self.mock_tensor[self._get_tensor_idx_from_pair(worst_interactions[2])], -9)
+
 if __name__ == '__main__':
   absltest.main()

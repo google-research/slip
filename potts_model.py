@@ -15,6 +15,7 @@
 
 """Potts models derived from direct coupling analysis (DCA)."""
 
+import functools
 from typing import Optional, Sequence
 
 import numpy as np
@@ -290,6 +291,36 @@ class PottsModel:
   @property
   def field_scale(self):
     return self._field_scale
+
+  @property
+  @functools.lru_cache()
+  def epistasis_tensor(self):
+      """Returns the epistasis tensor with respect to the wildtype sequence
+
+      Recall that epistasis is given by:
+      $$
+          \epsilon_{i \beta, j \gamma} =
+          H_{i \beta, j \gamma}
+          - H_{i a, j \gamma} - H_{i \beta, j a}
+          + H_{i a, j a}
+      $$
+      """
+      H = self.weight_matrix
+      L = H.shape[0]
+      A = H.shape[2]
+      epistasis_tensor = np.zeros_like(H)
+
+      # TODO(nthomas) vectorize
+      for i in range(L):
+          for j in range(L):
+              a = self.wildtype_sequence[i]
+              b = self.wildtype_sequence[j]
+              for alpha in range(A):
+                  for beta in range(A):
+                      epistasis_term = H[i, j, alpha, beta] - \
+                          H[i, j, alpha, b] - H[i, j, a, beta] + H[i, j, a, b]
+                      epistasis_tensor[i, j, alpha, beta] = epistasis_term
+      return epistasis_tensor
 
   def _potts_energy(self, sequences):
     """Compute the Potts model energy."""
