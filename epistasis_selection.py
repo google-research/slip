@@ -22,9 +22,8 @@ import potts_model
 import utils
 
 
-def combine_k_rounds(num_rounds: int, mutations: Iterable[Sequence[Tuple[int, int]]]) -> List[Sequence[Tuple[int, int]]]:
+def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int], ...]]) -> List[Tuple[Tuple[int, int], ...]]:
   """Return the result of combining `mutations` for `num_rounds`.
-
   Starting with a pool of M `mutations` m_1 ... m_M, stack them for K=`num_rounds` rounds. For example,
   for K=3 rounds of combination, this will result in every variant (m_i + m_j + m_k), for i, j, k \\in M.
   Be careful of memory usage, as this can be very large due to combinatorial possibilities.
@@ -32,34 +31,22 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Sequence[Tuple[int, in
   combining them produces 1 + 2^{P} variants. So in the worst case, this will produce
   {M \\choose K} * 2^{P} variants. See the definition for `utils.merge_mutation_sets` for more on
   mutation merging.
-
   Args:
     num_rounds: The number of rounds of combination
     mutations: The starting pool of mutations, where each mutation is an iterable of
       tuples encoding mutations (position, mutation).
-
   Returns:
     A list of tuples of mutations, where each element will be a combination of
     `num_rounds` mutations from `mutations`. Note that each tuple will possibly be of different lengths.
-
   """
   if num_rounds == 0:
     return list(mutations)
-  mutations_to_combine = itertools.combinations(mutations, num_rounds + 1)
+  mutation_combinations = itertools.combinations(mutations, num_rounds + 1)
 
   all_samples = []
-
-  for mutant in mutations_to_combine:
-    mutant = list(mutant)
-    prev_round = [()]
-    # iteratively add the mutations together
-    for i in range(num_rounds + 1):
-      next_round = []
-      new_mutation = mutant.pop()
-      for merged in prev_round:
-        next_round.extend(utils.merge_mutation_sets(merged, new_mutation))
-      prev_round = next_round
-    all_samples.extend(prev_round)
+  for mutation_combination in mutation_combinations:
+    all_samples.extend(
+        utils.merge_multiple_mutation_sets(mutation_combination))
   return all_samples
 
 

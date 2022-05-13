@@ -147,8 +147,22 @@ def merge_mutation_sets(
   return to_return
 
 
-def get_mutation_positions(sequence,
-                           parent):
+def merge_multiple_mutation_sets(mutation_sets: Sequence[Tuple[Tuple[int, int], ...]]) -> List[Tuple[Tuple[int, int], ...]]:
+  """Returns the merge of all `mutation_sets`
+  Returns:
+    A list of tuples of mutations"""
+  assert len(mutation_sets) >= 1
+  prev_merges = [mutation_sets[0], ]
+  mutation_sets = list(mutation_sets[1:])
+  while len(mutation_sets) != 0:
+    next_merges = []
+    mutation_set = mutation_sets.pop()
+    for prev_mutation_set in prev_merges:
+      next_merges.extend(merge_mutation_sets(prev_mutation_set, mutation_set))
+    prev_merges = next_merges
+  return prev_merges
+
+def get_mutation_positions(sequence, parent):
   """Returns positions where sequence and parent disagree.
 
   Args:
@@ -166,8 +180,7 @@ def get_mutation_positions(sequence,
   return np.where(sequence != parent)[0]
 
 
-def get_mutations(sequence,
-                  parent):
+def get_mutations(sequence, parent):
   """Returns locations and values where sequence and parent disagree.
 
   Args:
