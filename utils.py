@@ -17,6 +17,7 @@
 
 import collections
 import itertools
+import functools
 
 from typing import Iterable, Optional, Sequence, Tuple, List
 
@@ -147,20 +148,27 @@ def merge_mutation_sets(
   return to_return
 
 
-def merge_multiple_mutation_sets(mutation_sets: Sequence[Tuple[Tuple[int, int], ...]]) -> List[Tuple[Tuple[int, int], ...]]:
-  """Returns the merge of all `mutation_sets`
+def merge_mutation_set_into_multiple(mutation_sets: Sequence[Tuple[Tuple[int, int], ...]], mutation_set: Tuple[Tuple[int, int], ...]) -> List[Tuple[Tuple[int, int], ...]]:
+  """Returns the merge of `mutation_set` into multiple `mutation_sets`.
+
   Returns:
-    A list of tuples of mutations"""
-  assert len(mutation_sets) >= 1
-  prev_merges = [mutation_sets[0], ]
-  mutation_sets = list(mutation_sets[1:])
-  while len(mutation_sets) != 0:
-    next_merges = []
-    mutation_set = mutation_sets.pop()
-    for prev_mutation_set in prev_merges:
-      next_merges.extend(merge_mutation_sets(prev_mutation_set, mutation_set))
-    prev_merges = next_merges
-  return prev_merges
+    A list of mutation set tuples.
+  """
+  if len(mutation_sets) == 0:
+    return [mutation_set,]
+
+  all_merges = []
+  for mutation_set_a in mutation_sets:
+    all_merges.extend(merge_mutation_sets(mutation_set_a, mutation_set))
+  return all_merges
+
+def merge_multiple_mutation_sets(mutation_sets: Sequence[Tuple[Tuple[int, int], ...]]) -> List[Tuple[Tuple[int, int], ...]]:
+  """Returns the merge of all `mutation_sets`.
+
+  Returns:
+    A list of mutation set tuples.
+  """
+  return functools.reduce(merge_mutation_set_into_multiple, mutation_sets, [])
 
 def get_mutation_positions(sequence, parent):
   """Returns positions where sequence and parent disagree.

@@ -124,15 +124,9 @@ class UtilsTest(parameterized.TestCase):
                            ((0, 4), (1, 3), (3, 11))]),
       dict(
           testcase_name='easy_add',
-          mutations_a=[
-              (0, 1),
-          ],
-          mutations_b=[
-              (1, 2),
-          ],
-          expected_output=[
-              ((0, 1), (1, 2)),
-          ]),
+          mutations_a=[(0, 1),],
+          mutations_b=[(1, 2),],
+          expected_output=[((0, 1), (1, 2)),]),
       dict(
           testcase_name='add_with_duplicate',
           mutations_a=[(0, 1), (1, 3)],
@@ -143,6 +137,12 @@ class UtilsTest(parameterized.TestCase):
               ((0, 1), (1, 2)),
               ((0, 1), (1, 3)),
           ]),
+      dict(
+          testcase_name='one_set_empty',
+          mutations_a=[(0, 2), (1, 3)],
+          mutations_b=[],
+          expected_output=[((0, 2), (1, 3),),]
+        ),
   )
   def test_merge_mutation_sets(self, mutations_a, mutations_b, expected_output):
     actual = utils.merge_mutation_sets(mutations_a, mutations_b)
@@ -175,8 +175,7 @@ class UtilsTest(parameterized.TestCase):
           ]),
   )
   def test_merge_multiple_mutation_sets(self, mutations_a, mutations_b, mutations_c, expected_output):
-    actual = utils.merge_multiple_mutation_sets(
-        [mutations_a, mutations_b, mutations_c])
+    actual = utils.merge_multiple_mutation_sets([mutations_a, mutations_b, mutations_c])
     self.assertSetEqual(set(actual), set(expected_output))
 
   @parameterized.parameters(
