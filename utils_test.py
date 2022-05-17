@@ -124,15 +124,9 @@ class UtilsTest(parameterized.TestCase):
                            ((0, 4), (1, 3), (3, 11))]),
       dict(
           testcase_name='easy_add',
-          mutations_a=[
-              (0, 1),
-          ],
-          mutations_b=[
-              (1, 2),
-          ],
-          expected_output=[
-              ((0, 1), (1, 2)),
-          ]),
+          mutations_a=[(0, 1),],
+          mutations_b=[(1, 2),],
+          expected_output=[((0, 1), (1, 2)),]),
       dict(
           testcase_name='add_with_duplicate',
           mutations_a=[(0, 1), (1, 3)],
@@ -143,9 +137,45 @@ class UtilsTest(parameterized.TestCase):
               ((0, 1), (1, 2)),
               ((0, 1), (1, 3)),
           ]),
+      dict(
+          testcase_name='one_set_empty',
+          mutations_a=[(0, 2), (1, 3)],
+          mutations_b=[],
+          expected_output=[((0, 2), (1, 3),),]
+        ),
   )
   def test_merge_mutation_sets(self, mutations_a, mutations_b, expected_output):
     actual = utils.merge_mutation_sets(mutations_a, mutations_b)
+    self.assertSetEqual(set(actual), set(expected_output))
+
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='2_combos',
+          mutations_a=((0, 2), (1, 3)),
+          mutations_b=((0, 4), (3, 11)),
+          mutations_c=((4, 4), (5, 5)),
+          expected_output=[((0, 2), (1, 3), (3, 11), (4, 4), (5, 5)),
+                           ((0, 4), (1, 3), (3, 11), (4, 4), (5, 5))],
+      ),
+      dict(
+          testcase_name='easy_add',
+          mutations_a=((0, 0),),
+          mutations_b=((1, 1),),
+          mutations_c=((2, 2),),
+          expected_output=[((0, 0), (1, 1), (2, 2)), ],
+      ),
+      dict(
+          testcase_name='add_with_duplicate',
+          mutations_a=[(0, 1), ],
+          mutations_b=[(1, 2), ],
+          mutations_c=[(1, 3), (4, 4)],
+          expected_output=[
+              ((0, 1), (1, 2), (4, 4)),
+              ((0, 1), (1, 3), (4, 4)),
+          ]),
+  )
+  def test_merge_multiple_mutation_sets(self, mutations_a, mutations_b, mutations_c, expected_output):
+    actual = utils.merge_multiple_mutation_sets([mutations_a, mutations_b, mutations_c])
     self.assertSetEqual(set(actual), set(expected_output))
 
   @parameterized.parameters(
