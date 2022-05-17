@@ -53,10 +53,25 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
   return all_samples
 
 
+def filter_mutation_set_by_position(mutation_sets, limit: int = 10):
+  """filter the set of mutations so that they're only used a maximum of `limit` times"""
+  filtered_mutation_sets = []
+  position_counter = Counter()
+  for mutation_set in mutation_sets:
+    positions = [m[0] for m in mutation_set]
+    if any([position_counter[position] >= limit for position in positions]):
+      continue
+    else:
+      position_counter.update(positions)
+      filtered_mutation_sets.append(mutation_set)
+  return filtered_mutation_sets
+
+
 def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
                                      distance: int,
                                      n: int,
                                      adaptive: bool = True,
+                                     max_reuse: Optional[int] = None,
                                      top_k: Optional[int] = None,
                                      random_state: np.random.RandomState = np.random.RandomState(0)):
   """Return `n` variants at `distance` that are enriched for epistasis on `landscape`.
@@ -81,6 +96,10 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   if not top_k:
     top_k = n
   mutation_pairs = utils.get_top_n_mutation_pairs(landscape.epistasis_tensor, top_k, lowest=not adaptive)
+  if max_reuse is not None:
+    assert max_reuse > 0
+    mutation_pairs = filter_mutation_set_by_position(mutation_pairs, limit=max_reuse)
+    print(f'{len(mutation_pairs)} after filtering {top_k}')
 
   num_rounds = distance // 2
   all_combined = combine_k_rounds(num_rounds, mutation_pairs)
@@ -93,17 +112,3 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   subset = [all_combined[i] for i in subset_idxs]
   seqs = [utils.apply_mutations(landscape.wildtype_sequence, m) for m in subset]
   return seqs
-
-
-def filter_mutation_set_by_position(mutation_sets, limit: int = 10):
-  """filter the set of mutations so that they're only used a maximum of `limit` times"""
-  filtered_mutation_sets = []
-  position_counter = Counter()
-  for mutation_set in mutation_sets:
-    positions = [m[0] for m in mutation_set]
-    if any([position_counter[position] >= limit for position in positions]):
-      continue
-    else:
-      position_counter.update(positions)
-      filtered_mutation_sets.append(mutation_set)
-  return filtered_mutation_sets
