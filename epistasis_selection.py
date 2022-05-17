@@ -32,12 +32,10 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
   combining them produces 1 + 2^{P} variants. So in the worst case, this will produce
   {M \\choose K} * 2^{P} variants. See the definition for `utils.merge_mutation_sets` for more on
   mutation merging.
-
   Args:
     num_rounds: The number of rounds of combination
     mutations: The starting pool of mutations, where each mutation is an iterable of
       tuples encoding mutations (position, mutation).
-
   Returns:
     A list of tuples of mutations, where each element will be a combination of
     `num_rounds` mutations from `mutations`. Note that each tuple will possibly be of different lengths.
@@ -48,8 +46,7 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
 
   all_samples = []
   for mutation_combination in mutation_combinations:
-    all_samples.extend(
-        utils.merge_multiple_mutation_sets(mutation_combination))
+    all_samples.extend(utils.merge_multiple_mutation_sets(mutation_combination))
   return all_samples
 
 
