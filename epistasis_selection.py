@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import Counter
 import itertools
 from typing import Optional, Iterable, Tuple, List, Sequence
 
@@ -31,10 +32,12 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
   combining them produces 1 + 2^{P} variants. So in the worst case, this will produce
   {M \\choose K} * 2^{P} variants. See the definition for `utils.merge_mutation_sets` for more on
   mutation merging.
+
   Args:
     num_rounds: The number of rounds of combination
     mutations: The starting pool of mutations, where each mutation is an iterable of
       tuples encoding mutations (position, mutation).
+
   Returns:
     A list of tuples of mutations, where each element will be a combination of
     `num_rounds` mutations from `mutations`. Note that each tuple will possibly be of different lengths.
@@ -75,8 +78,6 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   if distance % 2 != 0:
     raise ValueError('Odd distance not supported.')
 
-  # TODO(nthomas) another option is to do this combination in batches, until the test set is full or the
-  # input mutations are exhausted
   if not top_k:
     top_k = n
   mutation_pairs = utils.get_top_n_mutation_pairs(landscape.epistasis_tensor, top_k, lowest=not adaptive)
@@ -90,3 +91,17 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   subset = random_state.choice(all_combined, n, replace=False)
   seqs = [utils.apply_mutations(landscape.wildtype_sequence, m) for m in subset]
   return seqs
+
+
+def filter_mutation_set_by_position(mutation_sets, limit: int = 10):
+  """filter the set of mutations so that they're only used a maximum of `limit` times"""
+  filtered_mutation_sets = []
+  position_counter = Counter()
+  for mutation_set in mutation_sets:
+    positions = [m[0] for m in mutation_set]
+    if any([position_counter[position] >= limit for position in positions]):
+      continue
+    else:
+      position_counter.update(positions)
+      filtered_mutation_sets.append(mutation_set)
+  return filtered_mutation_sets

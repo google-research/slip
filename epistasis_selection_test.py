@@ -96,6 +96,32 @@ class SelectionTest(parameterized.TestCase):
           m for m in actual_mutants if len(m) == distance]
       self.assertSetEqual(set(actual_mutants_at_distance), set(expected_set))
 
+  @parameterized.named_parameters(
+      dict(
+          testcase_name='limit_1_pairs',
+          mutation_sets=[((1, 1), (2, 2)),
+                           ((1, 1), (4, 4)),
+                           ((1, 1), (6, 6)),
+                           ((7, 7), (8, 8))],
+          limit=1,
+          expected_set=[((1, 1), (2, 2)),
+                        ((7, 7), (8, 8))],
+      ),
+      dict(
+          testcase_name='limit_2_pairs',
+          mutation_sets=[((1, 1), (2, 2)),
+                           ((1, 1), (4, 4)),
+                           ((1, 1), (6, 6)),
+                           ((7, 7), (8, 8))],
+          limit=2,
+          expected_set=[((1, 1), (2, 2)),
+                        ((1, 1), (4, 4)),
+                        ((7, 7), (8, 8))],
+      ),
+  )
+  def test_filter_mutation_set_by_position(self, mutation_sets, limit, expected_set):
+      actual = epistasis_selection.filter_mutation_set_by_position(mutation_sets, limit)
+      self.assertSetEqual(set(actual), set(expected_set))
 
 if __name__ == '__main__':
   absltest.main()
