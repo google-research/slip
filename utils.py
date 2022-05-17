@@ -224,7 +224,7 @@ def apply_mutations(parent,
     allow_same: By default, a ValueError is raised if `mutations` mutate to values
       that are the same as the parent. If this flag is True, this check is ignored.
   """
-  parent = parent.copy()
+  parent = np.array(parent.copy())
   mutations = np.array(mutations)
   if not mutations.size:
     return parent
