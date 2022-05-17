@@ -45,17 +45,16 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
 
   all_samples = []
   for mutation_combination in mutation_combinations:
-    all_samples.extend(
-        utils.merge_multiple_mutation_sets(mutation_combination))
+    all_samples.extend(utils.merge_multiple_mutation_sets(mutation_combination))
   return all_samples
 
 
 def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
-                                distance: int,
-                                n: int,
-                                adaptive: bool = True,
-                                top_k: Optional[int] = None,
-                                random_state: np.random.RandomState = np.random.RandomState(0)):
+                                     distance: int,
+                                     n: int,
+                                     adaptive: bool = True,
+                                     top_k: Optional[int] = None,
+                                     random_state: np.random.RandomState = np.random.RandomState(0)):
   """Return `n` variants at `distance` that are enriched for epistasis on `landscape`.
 
   To construct epistatic sequences, the top epistatic pairs are taken directly from the landscape
