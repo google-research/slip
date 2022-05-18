@@ -137,9 +137,14 @@ def get_adaptive_seqs_for_landscape(landscape: potts_model.PottsModel,
   """
   all_singles = sampling.get_all_single_mutants(landscape.wildtype_sequence, landscape.vocab_size)
   fitnesses = landscape.evaluate(all_singles)
+
   if not top_k:
     top_k = n
-  top_k_indexes = np.argsort(fitnesses)[:top_k]
+  if adaptive:
+    top_k_indexes = np.argsort(-1 * fitnesses)[:top_k]
+  else:
+    top_k_indexes = np.argsort(fitnesses)[:top_k]
+
   mutation_set = [utils.get_mutations(single, parent=landscape.wildtype_sequence) for single in all_singles[top_k_indexes]]
 
   if max_reuse is not None:
