@@ -199,11 +199,11 @@ class UtilsTest(parameterized.TestCase):
       utils.get_mutation_positions(a, b)
 
   @parameterized.parameters(
-      ([0, 1, 2], [0, 1, 2], []),
-      ([0, 1, 3], [0, 1, 2], [(2, 3)]),
-      ([0, 1, 2], [0, 1, 3], [(2, 2)]),
-      ([1, 1, 2], [0, 1, 3], [(0, 1), (2, 2)]),
-      ([1, 1, 2], [1, 0, 0], [(1, 1), (2, 2)]),
+      ([0, 1, 2], [0, 1, 2], ()),
+      ([0, 1, 3], [0, 1, 2], ((2, 3),)),
+      ([0, 1, 2], [0, 1, 3], ((2, 2),)),
+      ([1, 1, 2], [0, 1, 3], ((0, 1), (2, 2))),
+      ([1, 1, 2], [1, 0, 0], ((1, 1), (2, 2))),
   )
   def test_get_mutations(self, sequence, parent, expected_output):
     sequence = np.array(sequence)

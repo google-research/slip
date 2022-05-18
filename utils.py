@@ -204,7 +204,7 @@ def get_mutations(sequence, parent):
                          '(%d vs. %d).' % (len(sequence), len(parent)))
 
   mutation_positions = get_mutation_positions(sequence, parent)
-  return list(zip(mutation_positions, sequence[mutation_positions]))
+  return tuple(zip(mutation_positions, sequence[mutation_positions]))
 
 
 def get_num_mutations(seqs, parent_seq):
