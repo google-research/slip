@@ -154,7 +154,7 @@ class GetEpistaticSeqsIntegrationTest(parameterized.TestCase):
 
   def test_get_adaptive_seqs(self):
     expected_len = 2
-    adaptive_seqs = epistasis_selection.get_adaptive_seqs_for_landscape(self._get_landscape(), top_k=5, distance=2, n=2)
+    adaptive_seqs = epistasis_selection.get_adaptive_seqs_for_landscape(self._get_landscape(), top_k=10, distance=2, n=2)
     self.assertLen(adaptive_seqs, expected_len)
 
 

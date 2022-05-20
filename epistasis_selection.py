@@ -14,8 +14,10 @@
 # limitations under the License.
 
 from collections import Counter
+import functools
 import itertools
 from typing import Optional, Iterable, Tuple, List
+
 
 import numpy as np
 
@@ -115,6 +117,7 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   # TODO(nthomas) after switching to np.random.Generator, we can do rng.choice(all_combined)
   subset_idxs = random_state.choice(len(all_combined), n, replace=False)
   subset = [all_combined[i] for i in subset_idxs]
+
   seqs = [utils.apply_mutations(landscape.wildtype_sequence, m) for m in subset]
   return seqs
 
@@ -125,19 +128,23 @@ def get_adaptive_seqs_for_landscape(landscape: potts_model.PottsModel,
                                     adaptive: bool = True,
                                     max_reuse: Optional[int] = None,
                                     top_k: Optional[int] = None,
-                                    random_state: np.random.RandomState = np.random.RandomState(0)):
+                                    random_state: np.random.RandomState = np.random.RandomState(0)
+                                    ) -> List[np.ndarray]:
   """Return `n` variants at `distance` that are enriched for adaptive singles on `landscape`.
 
   To construct adaptive sequences, the top single mutants are taken directly from the landscape,
-  and used as building blocks for higher order mutants.
+  and used as building blocks for higher order mutants. If `max_reuse` is set, the
+  top singles are filtered greedily to only reuse the same positions `max_reuse` times.
 
   Args:
     landscape: The landscape.
     distance: The number of mutations from the landscape wildtype. Raises a ValueError if not an even number.
-    n: The number of variants
-    adaptive: When True (False), return sequences enriched for adaptive (deleterious) singles
+    n: The number of variants.
+    adaptive: When True (False), return sequences enriched for adaptive (deleterious) singles.
+    max_reuse: An integer indicating the maximum number of times a position can be reused in the starting pool
+      of epistatic pairs.
     top_k: The number of singles to use as building blocks.
-    random_state: An instance of np.random.RandomState
+    random_state: An instance of np.random.RandomState.
 
   Return:
     A List of sequences.
@@ -152,7 +159,8 @@ def get_adaptive_seqs_for_landscape(landscape: potts_model.PottsModel,
   else:
     top_k_indexes = np.argsort(fitnesses)[:top_k]
 
-  mutation_set = [utils.get_mutations(single, parent=landscape.wildtype_sequence) for single in all_singles[top_k_indexes]]
+  get_mutations_from_wt = functools.partial(utils.get_mutations, parent=landscape.wildtype_sequence)
+  mutation_set = [get_mutations_from_wt(single) for single in all_singles[top_k_indexes]]
 
   if max_reuse is not None:
     assert max_reuse > 0
