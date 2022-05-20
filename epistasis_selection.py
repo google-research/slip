@@ -102,7 +102,6 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
   mutation_pairs = utils.get_top_n_mutation_pairs(landscape.epistasis_tensor, top_k, lowest=not adaptive)
   if max_reuse is not None:
     assert max_reuse > 0
-    random_state.shuffle(mutation_pairs)
     mutation_pairs = filter_mutation_set_by_position(mutation_pairs, limit=max_reuse)
     print(f'{len(mutation_pairs)} after filtering {top_k}')
 
