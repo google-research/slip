@@ -233,8 +233,7 @@ class PottsModel:
     self._wt_seq = self._wt_seq[self._start_idx:self._end_idx]
 
     # One-hot representation for downstream calculations.
-    self._wt_onehot_seq = utils.onehot([self._wt_seq],
-                                       num_classes=self._vocab_size)[0, :, :]
+    self._wt_onehot_seq = utils.onehot([self._wt_seq], num_classes=self._vocab_size)[0, :, :]
 
     # Modify field terms for offsets
     self._field_vec = _get_shifted_fields(self._field_vec, single_mut_offset,
@@ -299,9 +298,9 @@ class PottsModel:
 
       Recall that epistasis is given by:
       $$
-          \epsilon_{i \beta, j \gamma} =
-          H_{i \beta, j \gamma}
-          - H_{i a, j \gamma} - H_{i \beta, j a}
+          \\epsilon_{i \\beta, j \\gamma} =
+          H_{i \\beta, j \\gamma}
+          - H_{i a, j \\gamma} - H_{i \\beta, j a}
           + H_{i a, j a}
       $$
       """
