@@ -15,7 +15,7 @@
 
 from collections import Counter
 import itertools
-from typing import Optional, Iterable, Tuple, List, Sequence
+from typing import Optional, Iterable, Tuple, List
 
 import numpy as np
 
@@ -33,10 +33,12 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
   combining them produces 1 + 2^{P} variants. So in the worst case, this will produce
   {M \\choose K} * 2^{P} variants. See the definition for `utils.merge_mutation_sets` for more on
   mutation merging.
+
   Args:
     num_rounds: The number of rounds of combination
     mutations: The starting pool of mutations, where each mutation is an iterable of
       tuples encoding mutations (position, mutation).
+
   Returns:
     A list of tuples of mutations, where each element will be a combination of
     `num_rounds` mutations from `mutations`. Note that each tuple will possibly be of different lengths.
@@ -51,8 +53,8 @@ def combine_k_rounds(num_rounds: int, mutations: Iterable[Tuple[Tuple[int, int],
   return all_samples
 
 
-def filter_mutation_set_by_position(mutation_sets, limit: int = 10):
-  """filter the set of mutations so that they're only used a maximum of `limit` times"""
+def filter_mutation_set_by_position(mutation_sets: Iterable[Tuple[Tuple[int, int], ...]], limit: int = 10):
+  """Return a filtered mutation set, where each position is used a maximum of `limit` times."""
   filtered_mutation_sets = []
   position_counter = Counter()
   for mutation_set in mutation_sets:
@@ -71,18 +73,23 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
                                      adaptive: bool = True,
                                      max_reuse: Optional[int] = None,
                                      top_k: Optional[int] = None,
-                                     random_state: np.random.RandomState = np.random.RandomState(0)):
+                                     random_state: np.random.RandomState = np.random.RandomState(0)
+                                     ) -> List[np.ndarray]:
   """Return `n` variants at `distance` that are enriched for epistasis on `landscape`.
 
   To construct epistatic sequences, the top epistatic pairs are taken directly from the landscape
-  epistasis tensor, and used as building blocks for higher order mutants.
+  epistasis tensor, and used as building blocks for higher order mutants. If `max_reuse` is set, the
+  top epistatic pairs are filtered greedily to only reuse the same positions `max_reuse` times.
 
   Args:
     landscape: The landscape.
     distance: The number of mutations from the landscape wildtype. Raises a ValueError if not an even number.
     n: The number of variants in the test set.
     adaptive: When True (False), return sequences enriched for adaptive (deleterious) epistasis
-    top_k: The number of highest magnitude interactions to use for sampling.
+    max_reuse: An integer indicating the maximum number of times a position can be reused in the starting pool
+      of epistatic pairs.
+    top_k: The number of highest magnitude interactions to use for sampling. All epistatic pairs included in the
+     resulting variants are guaranteed to be within the `top_k` highest magnitude.
     random_state: An instance of np.random.RandomState
 
   Return:
