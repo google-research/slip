@@ -38,13 +38,22 @@ def get_fraction_adaptive_singles(landscape: potts_model.PottsModel) -> float:
 
 
 def get_doubles_df(landscape: potts_model.PottsModel, threshold: float, adaptive: bool) -> pd.DataFrame:
-    """Returns a DataFrame of all combinations of singles that are above/below a given fitness threshold.
+    """Returns a DataFrame of all pairwise combinations of singles above/below a given fitness threshold.
 
     For each double mutant, the DataFrame includes the keys:
         'fitness': the fitness of the double.
         'a_fitness': the fitness of the first constituent single.
         'b_fitness': the fitness of the second constituent single.
         'residual': the epistatic term ].
+
+    Args:
+        landscape: The landscape on which to compute double fitness.
+        threshold: The threshold fitness for filtering single mutants.
+        adaptive: A boolean, indicating, if True (False), to construct pairwise combinations from single mutants
+            that are above (below) the `threshold` fitness.
+
+    Returns:
+        A DataFrame of double mutants with keys 'fitness', 'a_fitness', 'b_fitness', and 'residual'.
     """
     wt_seq = landscape.wildtype_sequence
     all_singles = sampling.get_all_single_mutants(wt_seq, landscape.vocab_size)
@@ -92,7 +101,7 @@ def get_epistasis_stats(landscape: potts_model.PottsModel,
 
     Args:
       landscape: The landscape.
-      threshold: The threshold fitness for singles.
+      threshold: The threshold fitness for selected singles.
       adaptive: If True, thresholded singles will have fitness >= `threshold`. If False,
         selected singles will have fitness < `threshold`.
 
