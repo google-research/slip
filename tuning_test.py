@@ -98,7 +98,7 @@ class TuningParamsTest(parameterized.TestCase):
             fraction_adaptive_singles=fraction_adaptive_singles)
 
         tuned_landscape = self._get_landscape(wt_seq=wt_seq, seed=seed, **tuning_kwargs)
-        actual_fraction_adaptive_singles = tuning.get_fraction_adaptive_singles(tuned_landscape)
+        actual_fraction_adaptive_singles = tuning.get_adaptive_single_fraction(tuned_landscape)
 
         num_singles = len(wt_seq) * (untuned_landscape.vocab_size - 1)
         # Because we adjust single mutant fitness, we can only get to within
@@ -146,14 +146,15 @@ class TuningParamsTest(parameterized.TestCase):
     )
     def test_tune_epistasis(self, wt_seq, seed, desired_fraction):
         untuned_landscape = self._get_landscape(wt_seq=wt_seq, seed=seed)
-        untuned_fraction_adaptive_singles = tuning.get_fraction_adaptive_singles(untuned_landscape)
+        untuned_fraction_adaptive_singles = tuning.get_adaptive_single_fraction(untuned_landscape)
 
         tuning_kwargs = tuning.get_tuning_kwargs(
             untuned_landscape,
             fraction_reciprocal_adaptive_epistasis=desired_fraction)
 
         tuned_landscape = self._get_landscape(wt_seq=wt_seq, seed=seed, **tuning_kwargs)
-        _, actual_fraction = tuning.get_epistasis_stats(tuned_landscape)
+        doubles_df = tuning.get_doubles_df(tuned_landscape, threshold=0.0, adaptive=True)
+        _, actual_fraction = tuning.get_epistasis_stats(tuned_landscape, doubles_df)
 
         num_singles = len(wt_seq) * (untuned_landscape.vocab_size - 1)
         num_adaptive_singles = num_singles * untuned_fraction_adaptive_singles
