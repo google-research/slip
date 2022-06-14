@@ -242,7 +242,10 @@ class TuningParamsTest(parameterized.TestCase):
 
         num_singles = len(wt_seq) * (untuned_landscape.vocab_size - 1)
         # Because we are adjusting quantiles, we can only get to within
-        # 1 / num_singles of the desired proportion
+        # (+/-) 1 / num_singles of the desired proportion.
+        # e.g. if there are 10 singles, the only possible fractions of adaptive singles are
+        # 0/10, 1/10, 2/10, ... , 9/10, 10/10, so even if the desired fraction is 0.95, we will
+        # be able to achieve 0.9 or 1.0.
         max_singles_proportion_error = 1.0 / num_singles
         self.assertBetween(actual_stats_dict['fraction_adaptive_singles'],
                            desired_stats_dict['fraction_adaptive_singles'] - max_singles_proportion_error,
@@ -251,12 +254,14 @@ class TuningParamsTest(parameterized.TestCase):
         untuned_fraction_adaptive_singles = tuning.get_landscape_stats(untuned_landscape)['fraction_adaptive_singles']
         num_adaptive_singles = num_singles * untuned_fraction_adaptive_singles
 
-        num_adaptive_doubles = comb(num_adaptive_singles, 2)
+        num_adaptive_doubles = len(tuning.get_doubles_df(tuned_landscape, threshold=0.0, adaptive=True))
         # TODO(nthomas) explain that we assume double collisions for safety
-        fudge_factor = 2 * (1.0 / num_adaptive_doubles)
+        # We can only get to within (+/-) 1 / num_doubles.
+        # See the above comment about adaptive single fractions.
+        epistasis_fraction_error = (1.0 / num_adaptive_doubles)
         self.assertBetween(actual_stats_dict['fraction_reciprocal_adaptive_epistasis'],
-                           desired_stats_dict['fraction_reciprocal_adaptive_epistasis'] - fudge_factor,
-                           desired_stats_dict['fraction_reciprocal_adaptive_epistasis'] + fudge_factor)
+                           desired_stats_dict['fraction_reciprocal_adaptive_epistasis'] - epistasis_fraction_error,
+                           desired_stats_dict['fraction_reciprocal_adaptive_epistasis'] + epistasis_fraction_error)
 
         self.assertAlmostEqual(desired_stats_dict['epistatic_horizon'],
                                actual_stats_dict['epistatic_horizon'],
