@@ -16,7 +16,7 @@
 """Potts models derived from direct coupling analysis (DCA)."""
 
 import functools
-from typing import Optional, Sequence
+from typing import Sequence
 
 import numpy as np
 
@@ -176,9 +176,9 @@ class PottsModel:
   """
 
   def __init__(self,
-               weight_matrix,
-               field_vec,
-               wt_seq,
+               weight_matrix: np.ndarray,
+               field_vec: np.ndarray,
+               wt_seq: Sequence[int],
                coupling_scale = 1.0,
                field_scale = 1.0,
                single_mut_offset = 0.0,
@@ -233,7 +233,7 @@ class PottsModel:
     self._wt_seq = self._wt_seq[self._start_idx:self._end_idx]
 
     # One-hot representation for downstream calculations.
-    self._wt_onehot_seq = utils.onehot([self._wt_seq], num_classes=self._vocab_size)[0, :, :]
+    self._wt_onehot_seq = utils.onehot([self._wt_seq], num_classes=self._vocab_size)[0]
 
     # Modify field terms for offsets
     self._field_vec = _get_shifted_fields(self._field_vec, single_mut_offset,
