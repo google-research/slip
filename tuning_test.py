@@ -203,8 +203,10 @@ class TuningParamsTest(parameterized.TestCase):
 
         tuned_landscape = self._get_landscape(wt_seq=wt_seq, seed=seed, **tuning_kwargs)
 
+        # TODO(nthomas) Add direct test - sample K-mutants and show that properties are as expected.
+        # See https://github.com/google-research/slip/pull/9#discussion_r879961779
         actual_horizon = tuning.get_epistatic_horizon(tuned_landscape)
-        # TODO(nthomas) make this exact.
+        # TODO(nthomas) Can we tune the epistatic horizon exactly instead of approximately?
         self.assertAlmostEqual(desired_horizon, actual_horizon, places=3)
 
 # TODO(nthomas) add test for singles and epi offset to act independently...
