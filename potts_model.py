@@ -24,7 +24,6 @@ import utils
 
 
 
-
 def _get_shifted_weights(weight_matrix,
                          wt_onehot_seq,
                          epi_offset = 0.0):
