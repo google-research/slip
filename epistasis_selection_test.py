@@ -120,7 +120,8 @@ class SelectionTest(parameterized.TestCase):
         ),
     )
     def test_filter_mutation_set_by_position(self, mutation_sets, limit, expected_set):
-        actual = epistasis_selection.filter_mutation_sets_by_position(mutation_sets, limit)
+        actual = epistasis_selection.filter_mutation_sets_by_position(
+            mutation_sets, limit)
         self.assertSetEqual(set(actual), set(expected_set))
 
 
@@ -132,7 +133,8 @@ class GetEpistaticSeqsIntegrationTest(parameterized.TestCase):
         rng = np.random.default_rng(0)
         weight_matrix = rng.normal(size=(4, 4, 20, 20))
         # make symmetric
-        weight_matrix = weight_matrix + np.moveaxis(weight_matrix, (0, 1, 2, 3), (1, 0, 3, 2))
+        weight_matrix = weight_matrix + \
+            np.moveaxis(weight_matrix, (0, 1, 2, 3), (1, 0, 3, 2))
         field_vec = rng.normal(size=(4, 20))
         return weight_matrix, field_vec
 

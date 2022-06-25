@@ -145,7 +145,8 @@ def merge_mutation_sets(
     to_return = []
     for c in itertools.product(*collisions):
         mutations = c + tuple(singletons)
-        sorted_mutations = tuple(sorted(mutations, key=lambda m: m[position_idx]))
+        sorted_mutations = tuple(
+            sorted(mutations, key=lambda m: m[position_idx]))
         to_return.append(sorted_mutations)
     to_return = sorted(to_return)
     return to_return
@@ -242,7 +243,8 @@ def apply_mutations(parent,
 
     # assert all mutation locations are unique
     if not len(set(locations)) == len(locations):
-        raise ValueError('Invalid mutation: not all mutation locations are unique.')
+        raise ValueError(
+            'Invalid mutation: not all mutation locations are unique.')
 
     if (parent[locations] == values).any() and not allow_same:
         raise ValueError('Invalid mutation: attempting to mutate the parent '
@@ -336,7 +338,8 @@ def get_top_n_mutation_pairs(interaction_tensor: np.ndarray,
         sorted_flat_indexes = np.argsort(-1 * interaction_tensor, axis=None)
 
     top_n_flat_indexes = sorted_flat_indexes[:top_n]
-    top_indexes = np.unravel_index(top_n_flat_indexes, shape=interaction_tensor.shape)
+    top_indexes = np.unravel_index(
+        top_n_flat_indexes, shape=interaction_tensor.shape)
     index_list = np.vstack(top_indexes).T.tolist()
 
     def _convert_to_mutation_pair(tensor_index):
@@ -364,13 +367,16 @@ def get_top_n_single_mutations(wildtype_sequence,
     Returns:
         A list of tuples of a single mutation tuple (i, a), where i is the position and a is the amino acid class.
     """
-    all_singles = sampling.get_all_single_mutants(wildtype_sequence, vocab_size)
+    all_singles = sampling.get_all_single_mutants(
+        wildtype_sequence, vocab_size)
     fitnesses = fitness_fn(all_singles)
     if get_highest:
         top_n_indexes = np.argsort(-1 * fitnesses)[:top_n]
     else:
         top_n_indexes = np.argsort(fitnesses)[:top_n]
 
-    get_mutations_from_wt = functools.partial(get_mutations, parent=wildtype_sequence)
-    single_mutations = [get_mutations_from_wt(single) for single in all_singles[top_n_indexes]]
+    get_mutations_from_wt = functools.partial(
+        get_mutations, parent=wildtype_sequence)
+    single_mutations = [get_mutations_from_wt(
+        single) for single in all_singles[top_n_indexes]]
     return single_mutations
