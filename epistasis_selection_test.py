@@ -44,10 +44,8 @@ class SelectionTest(parameterized.TestCase):
         ),
     )
     def test_combine_k_rounds(self, num_rounds, distance, epistatic_pairs, expected_set):
-        actual_mutants = epistasis_selection.combine_k_rounds(
-            num_rounds=num_rounds, mutations=epistatic_pairs)
-        actual_mutants_at_distance = [
-            m for m in actual_mutants if len(m) == distance]
+        actual_mutants = epistasis_selection.combine_k_rounds(num_rounds=num_rounds, mutations=epistatic_pairs)
+        actual_mutants_at_distance = [m for m in actual_mutants if len(m) == distance]
         self.assertSetEqual(set(actual_mutants_at_distance), set(expected_set))
 
     @parameterized.named_parameters(

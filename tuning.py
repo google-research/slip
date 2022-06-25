@@ -31,8 +31,7 @@ import utils
 
 def get_adaptive_single_fraction(landscape: potts_model.PottsModel) -> float:
     """Returns the fraction of single mutants with fitness >= to the wildtype fitness."""
-    all_singles = sampling.get_all_single_mutants(
-        landscape.wildtype_sequence, landscape.vocab_size)
+    all_singles = sampling.get_all_single_mutants(landscape.wildtype_sequence, landscape.vocab_size)
     wt_fitness = landscape.evaluate(landscape.wildtype_sequence).item()
     fraction_adaptive = (landscape.evaluate(all_singles) >= wt_fitness).mean()
     return fraction_adaptive
@@ -65,8 +64,7 @@ def get_doubles_df(landscape: potts_model.PottsModel, threshold: float, adaptive
         singles = df[df.fitness < threshold].sequence
 
     if len(singles) < 2:
-        raise ValueError(
-            f'Invalid Landscape: fewer than 2 singles for threshold {threshold}')
+        raise ValueError(f'Invalid Landscape: fewer than 2 singles for threshold {threshold}')
 
     doubles = []
     single_a = []
@@ -87,8 +85,7 @@ def get_doubles_df(landscape: potts_model.PottsModel, threshold: float, adaptive
     doubles_df['a_fitness'] = single_a_fitness
     doubles_df['b_fitness'] = single_b_fitness
 
-    residual = doubles_df.fitness - doubles_df.a_fitness - \
-        doubles_df.b_fitness + landscape.evaluate(wt_seq)
+    residual = doubles_df.fitness - doubles_df.a_fitness - doubles_df.b_fitness + landscape.evaluate(wt_seq)
     doubles_df['residual'] = residual
     return doubles_df
 
@@ -118,8 +115,7 @@ def get_epistasis_stats(landscape: potts_model.PottsModel, doubles_df: pd.DataFr
     elif (doubles_df.a_fitness < threshold).all() and (doubles_df.b_fitness < threshold).all():
         adaptive = False
     else:
-        raise ValueError(
-            'Reciprocal sign epistasis undefined for inconsistent doubles effects.')
+        raise ValueError('Reciprocal sign epistasis undefined for inconsistent doubles effects.')
 
     if adaptive:
         rate_reciprocal_epistasis = (residual < 0).sum() / residual.shape[0]
@@ -182,8 +178,7 @@ def get_epistatic_horizon(landscape: potts_model.PottsModel) -> float:
     if mean_adaptive_epistasis == 0.0:
         epistatic_horizon = np.inf
     else:
-        epistatic_horizon = (mean_adaptive_epistasis - 2 *
-                             mean_adaptive_single) / mean_adaptive_epistasis
+        epistatic_horizon = (mean_adaptive_epistasis - 2 * mean_adaptive_single) / mean_adaptive_epistasis
     return epistatic_horizon
 
 
@@ -219,8 +214,7 @@ def get_single_mut_offset(landscape: potts_model.PottsModel, fraction_adaptive_s
     all_singles = sampling.get_all_single_mutants(
         landscape.wildtype_sequence, landscape.vocab_size)
     single_fitness = landscape.evaluate(all_singles)
-    single_mut_offset = -1 * \
-        np.quantile(single_fitness, q=1 - fraction_adaptive_singles)
+    single_mut_offset = -1 * np.quantile(single_fitness, q=1 - fraction_adaptive_singles)
     # np.quantile returns float64 by default
     return single_mut_offset.astype(np.float32)
 
@@ -240,9 +234,8 @@ def get_epi_offset(landscape: potts_model.PottsModel,
     doubles_df = get_doubles_df(
         pretuned_landscape, threshold=0.0, adaptive=True)
     # we want fraction to remain negative
-    epi_offset = -1 * \
-        np.quantile(doubles_df.residual,
-                    q=fraction_reciprocal_adaptive_epistasis)
+    epi_offset = -1 * np.quantile(doubles_df.residual,
+                                  q=fraction_reciprocal_adaptive_epistasis)
     # np.quantile returns float64 by default
     return epi_offset.astype(np.float32)
 

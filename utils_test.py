@@ -104,8 +104,7 @@ class UtilsTest(parameterized.TestCase):
 
         # should be ~uniform 1s across columns
         num_1s_in_each_position = recombined_seqs.sum(axis=0)
-        freq_1s_in_each_position = num_1s_in_each_position / \
-            recombined_seqs.shape[0]
+        freq_1s_in_each_position = num_1s_in_each_position / recombined_seqs.shape[0]
         dist_1s = freq_1s_in_each_position / freq_1s_in_each_position.sum()
         uniform_dist = np.array([0.25, 0.25, 0.25, 0.25])
         np.testing.assert_allclose(dist_1s, uniform_dist, atol=0.02)

@@ -21,9 +21,10 @@ from absl.testing import parameterized
 import numpy as np
 from scipy.special import comb
 
-import tuning
 import potts_model
 import sampling
+import tuning
+import utils
 
 
 class TuningParamsTest(parameterized.TestCase):
@@ -117,9 +118,7 @@ class TuningParamsTest(parameterized.TestCase):
     def test_no_adaptives_raises(self):
         wt_seq = [0, 0, 0, 0]
         weight_matrix = np.zeros(shape=(4, 4, 20, 20), dtype=np.float32)
-        import utils
-        field_vec = np.zeros(shape=(4, 20), dtype=np.float32) - \
-            utils.onehot(wt_seq, num_classes=20)
+        field_vec = np.zeros(shape=(4, 20), dtype=np.float32) - utils.onehot(wt_seq, num_classes=20)
         dead_landscape = potts_model.PottsModel(
             weight_matrix, field_vec, wt_seq=wt_seq)
 
