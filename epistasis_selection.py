@@ -53,7 +53,8 @@ def combine_k_rounds(num_rounds: int,
 
     all_samples = []
     for mutation_combination in mutation_combinations:
-        all_samples.extend(utils.merge_multiple_mutation_sets(mutation_combination))
+        all_samples.extend(
+            utils.merge_multiple_mutation_sets(mutation_combination))
     return all_samples
 
 
@@ -94,8 +95,10 @@ def get_top_k_epistatic_pairs(landscape: potts_model.PottsModel,
 """
     if max_reuse <= 0:
         raise ValueError('`max_reuse` must be > 0.')
-    mutation_pairs = utils.get_top_n_mutation_pairs(landscape.epistasis_tensor, top_n=top_k, get_highest=adaptive)
-    mutation_pairs = filter_mutation_sets_by_position(mutation_pairs, limit=max_reuse)
+    mutation_pairs = utils.get_top_n_mutation_pairs(
+        landscape.epistasis_tensor, top_n=top_k, get_highest=adaptive)
+    mutation_pairs = filter_mutation_sets_by_position(
+        mutation_pairs, limit=max_reuse)
     print(f'{len(mutation_pairs)} pairs after filtering {top_k}')
     return mutation_pairs
 
@@ -120,7 +123,8 @@ def get_top_k_single_mutations(landscape: potts_model.PottsModel, adaptive: bool
                                                      landscape.evaluate,
                                                      top_n=top_k,
                                                      get_highest=adaptive)
-    mutation_sets = filter_mutation_sets_by_position(mutation_sets, limit=max_reuse)
+    mutation_sets = filter_mutation_sets_by_position(
+        mutation_sets, limit=max_reuse)
     print(f'{len(mutation_sets)} singles after filtering {top_k}')
     return mutation_sets
 
@@ -145,7 +149,8 @@ def combine_mutations_and_subset(mutation_sets: Iterable[Tuple[Mutation, ...]],
       A List of sequences of distance `target_distance` from the `wildtype_sequence`.
     """
     all_combined = combine_k_rounds(num_rounds, mutation_sets)
-    all_combined = [element for element in all_combined if len(element) == target_distance]
+    all_combined = [element for element in all_combined if len(
+        element) == target_distance]
 
     if len(all_combined) < n:
         raise ValueError(
@@ -163,7 +168,8 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
                                      adaptive: bool,
                                      max_reuse: int,
                                      top_k: int,
-                                     random_state: np.random.RandomState = np.random.RandomState(0)
+                                     random_state: np.random.RandomState = np.random.RandomState(
+                                         0)
                                      ) -> List[np.ndarray]:
     """Return `n` variants at `distance` that are enriched for epistasis on `landscape`.
 
@@ -188,7 +194,8 @@ def get_epistatic_seqs_for_landscape(landscape: potts_model.PottsModel,
     if distance % 2 != 0:
         raise ValueError('Odd distance not supported.')
 
-    mutation_pairs = get_top_k_epistatic_pairs(landscape, adaptive, max_reuse, top_k)
+    mutation_pairs = get_top_k_epistatic_pairs(
+        landscape, adaptive, max_reuse, top_k)
     num_rounds = distance // 2
     return combine_mutations_and_subset(mutation_pairs,
                                         num_rounds,
@@ -204,7 +211,8 @@ def get_adaptive_seqs_for_landscape(landscape: potts_model.PottsModel,
                                     adaptive: bool,
                                     max_reuse: int,
                                     top_k: int,
-                                    random_state: np.random.RandomState = np.random.RandomState(0)
+                                    random_state: np.random.RandomState = np.random.RandomState(
+                                        0)
                                     ) -> List[np.ndarray]:
     """Return `n` variants at `distance` that are enriched for adaptive singles on `landscape`.
 
@@ -225,7 +233,8 @@ def get_adaptive_seqs_for_landscape(landscape: potts_model.PottsModel,
     Return:
       A List of sequences.
     """
-    mutation_sets = get_top_k_single_mutations(landscape, adaptive, max_reuse, top_k)
+    mutation_sets = get_top_k_single_mutations(
+        landscape, adaptive, max_reuse, top_k)
     num_rounds = distance
     seqs = combine_mutations_and_subset(mutation_sets, num_rounds, n, distance,
                                         landscape.wildtype_sequence, random_state)
