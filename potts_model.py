@@ -23,9 +23,9 @@ import numpy as np
 import utils
 
 
-def _get_shifted_weights(weight_matrix,
-                         wt_onehot_seq,
-                         epi_offset=0.0):
+def _get_shifted_weights(weight_matrix: np.ndarray,
+                         wt_onehot_seq: np.ndarray,
+                         epi_offset: float=0.0):
     """Add correction for epistatic offset.
 
     Args:
@@ -251,9 +251,7 @@ class PottsModel:
         self._field_scale = field_scale
         self._center_fitness_to_wildtype = center_fitness_to_wildtype
         if center_fitness_to_wildtype:
-            wt_array = np.array([
-                self.wildtype_sequence,
-            ])
+            wt_array = np.array([self.wildtype_sequence, ])
             self._wildtype_fitness = -self._potts_energy(wt_array).item()
 
     def evaluate(self, sequences):
@@ -296,12 +294,7 @@ class PottsModel:
         """Returns the epistasis tensor with respect to the wildtype sequence
 
         Recall that epistasis is given by:
-        $$
-            \\epsilon_{i \\beta, j \\gamma} =
-            H_{i \\beta, j \\gamma}
-            - H_{i a, j \\gamma} - H_{i \\beta, j a}
-            + H_{i a, j a}
-        $$
+            e_iAjB = H_iAjB - HiajB - HiAjb + Hiajb
         """
         H = self.weight_matrix
         L = H.shape[0]
