@@ -124,6 +124,33 @@ class SelectionTest(parameterized.TestCase):
             mutation_sets, limit)
         self.assertSetEqual(set(actual), set(expected_set))
 
+    @parameterized.named_parameters(
+        dict(
+            testcase_name='1_remaining',
+            mutation_sets=[((0, 0), (1, 2)),
+                           ((0, 1), (2, 1), (3, 3)),
+                           ((0, 1), )],
+            wildtype_sequence=[0, 1, 2, 3],
+            expected_set=[((0, 1), ),],
+        ),
+        dict(
+            testcase_name='no_overlap',
+            mutation_sets=[((1, 2), (2, 3)),
+                           ((3, 5), (0, 5)),
+                           ((0, 1),),
+                           ((3, 7), (2, 8), (1, 0))],
+            wildtype_sequence=[0, 1, 2, 3],
+            expected_set=[((1, 2), (2, 3)),
+                          ((3, 5), (0, 5)),
+                          ((0, 1),),
+                          ((3, 7), (2, 8), (1, 0))],
+        ),
+    )
+    def test_filter_mutation_sets_for_reference(self, mutation_sets, wildtype_sequence, expected_set):
+        actual = epistasis_selection.filter_mutation_sets_for_reference(
+            mutation_sets, wildtype_sequence)
+        self.assertSetEqual(set(actual), set(expected_set))
+
 
 class GetEpistaticSeqsIntegrationTest(parameterized.TestCase):
     """Tests for epistatic sequences."""
