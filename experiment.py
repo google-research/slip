@@ -233,6 +233,11 @@ def get_samples_around_wildtype(
     return sample_df
 
 
+def get_pdb_from_mogwai_filepath(mogwai_filepath):
+    pdb = mogwai_filepath.rsplit('/', 1)[1].rstrip('_model_state_dict.npz')
+    return pdb
+
+
 def get_test_sets_in_dir(directory: PathLike) -> Dict[str, np.ndarray]:
     """Returns a mapping from test set names to an array of integer encoded sequences.
 
@@ -315,6 +320,8 @@ def run_regression_experiment(
     train_metrics = compute_regression_metrics_for_model(model, train_df)
     run_metrics['train'] = train_metrics
 
+    pdb = get_pdb_from_mogwai_filepath(mogwai_filepath)
+    test_set_dir = Path(test_set_dir) / Path(pdb)
     test_set_name_to_seqs = get_test_sets_in_dir(test_set_dir)
     for test_set_name, test_set_seqs in test_set_name_to_seqs:
         test_df = get_fitness_df_for_landscape(test_set_seqs)
