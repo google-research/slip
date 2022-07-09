@@ -251,9 +251,9 @@ def get_test_sets_in_dir(directory: PathLike) -> Dict[str, np.ndarray]:
         A mapping from test set names to an array of integer encoded sequences.
     """
     test_set_name_to_sequences = {}
-    for filepath in glob(directory + '*.npz'):
+    for filepath in directory.glob('*.npz'):
+        test_set_name = filepath.stem
         npzfile = np.load(filepath)
-        test_set_name = filepath.rsplit('/', 1)[1].rstrip('.npz')
         test_set_name_to_sequences[test_set_name] = npzfile['sequences']
     return test_set_name_to_sequences
 
@@ -323,7 +323,7 @@ def run_regression_experiment(
     pdb = get_pdb_from_mogwai_filepath(mogwai_filepath)
     test_set_dir = Path(test_set_dir) / Path(pdb)
     test_set_name_to_seqs = get_test_sets_in_dir(test_set_dir)
-    for test_set_name, test_set_seqs in test_set_name_to_seqs:
+    for test_set_name, test_set_seqs in test_set_name_to_seqs.items():
         test_df = get_fitness_df_for_landscape(test_set_seqs)
         test_set_metrics = compute_regression_metrics_for_model(model, test_df)
         run_metrics[test_set_name] = test_set_metrics

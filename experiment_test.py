@@ -28,35 +28,9 @@ import utils
 
 class ExperimentTest(parameterized.TestCase):
     """Tests for experiment."""
+    test_set_dir= 'mock/test_sets'
+    mock_mogwai_filepath = 'mock/fakepdb_model_state_dict.npz'
 
-    def _write_mock_mogwai_state_dict(self):
-        L = 3
-        A = 5
-        # linear landscape, all singles are adaptive
-        query_seq = np.zeros(L, dtype=np.int32)
-        bias = np.zeros((L, A)) - utils.onehot(query_seq, num_classes=A)
-        weight = np.zeros((L, A, L, A))
-
-        state_dict = {
-            'bias': bias,
-            'weight': weight,
-            'query_seq': query_seq,
-        }
-
-        _, filepath = tempfile.mkstemp(suffix='.npz')
-
-        np.savez(filepath, **state_dict)
-
-        self._vocab_size = A
-        self._mock_mogwai_filepath = filepath
-
-    def setUp(self):
-        super().setUp()
-        self._write_mock_mogwai_state_dict()
-
-    def tearDown(self):
-        super().tearDown()
-        os.remove(self._mock_mogwai_filepath)
 
     @parameterized.parameters(
         ('cnn'),
@@ -64,7 +38,7 @@ class ExperimentTest(parameterized.TestCase):
     )
     def test_run_regression_experiment_deterministic(self, model_name):
         regression_kwargs = dict(
-            mogwai_filepath=self._mock_mogwai_filepath,
+            mogwai_filepath=self.mock_mogwai_filepath,
             fraction_adaptive_singles=0.9,
             fraction_reciprocal_adaptive_epistasis=None,
             epistatic_horizon=None,
@@ -76,12 +50,7 @@ class ExperimentTest(parameterized.TestCase):
             training_set_random_seed=0,
             model_name=model_name,
             model_random_seed=0,
-            test_set_distances=[2, ],
-            test_set_n=4,
-            test_set_random_seed=0,
-            test_set_max_reuse=10,
-            test_set_singles_top_k=200,
-            test_set_epistatic_top_k=2000)
+            test_set_dir=self.test_set_dir)
         run_one = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
         run_two = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
         # Test deterministic runs.
@@ -90,9 +59,7 @@ class ExperimentTest(parameterized.TestCase):
         # test that expected metrics are there.
         expected_split_keys = [
             'train',
-            'adaptive_epistatic_seqs_distance_2',
-            'deleterious_epistatic_seqs_distance_2',
-            'adaptive_singles_seqs_distance_2'
+            'test_set_1',
         ]
         expected_metric_keys = [
             'mse', 'std_test', 'std_predicted', 'test_size'
@@ -108,7 +75,7 @@ class ExperimentTest(parameterized.TestCase):
     )
     def test_run_design_experiment_deterministic(self, model_name):
         design_kwargs = dict(
-            mogwai_filepath=self._mock_mogwai_filepath,
+            mogwai_filepath=self.mock_mogwai_filepath,
             fraction_adaptive_singles=0.9,
             fraction_reciprocal_adaptive_epistasis=None,
             epistatic_horizon=None,
@@ -137,7 +104,8 @@ class ExperimentTest(parameterized.TestCase):
         self.assertEqual(run_one, run_two)
 
         expected_keys = [
-            'diversity_normalize_hit_rate', '0.5_percentile_fitness',
+            'diversity_normalize_hit_rate',
+            '0.5_percentile_fitness',
             '0.9_percentile_fitness'
         ]
         for key in expected_keys:
