@@ -15,9 +15,12 @@
 
 """Methods for running optimization trajectories."""
 
+from os import PathLike
 import random as python_random
 import functools
-from typing import Sequence, Tuple, Optional
+from glob import glob
+from typing import Dict, Sequence, Tuple, Optional
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -230,6 +233,26 @@ def get_samples_around_wildtype(
     return sample_df
 
 
+def get_test_sets_in_dir(directory: PathLike) -> Dict[str, np.ndarray]:
+    """Returns a mapping from test set names to an array of integer encoded sequences.
+
+    Loads all of the .npz files in the given directory. Assumes that the npz
+    files have an attribute named 'sequences' which can be accessed.
+
+    Args:
+        directory: The directory to load from.
+
+    Returns:
+        A mapping from test set names to an array of integer encoded sequences.
+    """
+    test_set_name_to_sequences = {}
+    for filepath in glob(directory + '*.npz'):
+        npzfile = np.load(filepath)
+        test_set_name = filepath.rsplit('/', 1)[1].rstrip('.npz')
+        test_set_name_to_sequences[test_set_name] = npzfile['sequences']
+    return test_set_name_to_sequences
+
+
 def run_regression_experiment(
         mogwai_filepath: str,
         fraction_adaptive_singles: float,
@@ -243,12 +266,7 @@ def run_regression_experiment(
         training_set_random_seed: int,
         model_name: str,
         model_random_seed: int,
-        test_set_distances: Sequence[int],
-        test_set_n: int,
-        test_set_random_seed: int,
-        test_set_max_reuse: int,
-        test_set_singles_top_k: int,
-        test_set_epistatic_top_k: int):
+        test_set_dir: str):
     """Returns metrics for a regression experiment."""
     # Load Potts model landscape
     print('Loading tuned landscape...')
@@ -288,8 +306,6 @@ def run_regression_experiment(
     run_metrics = {}
 
     # Compute regression metrics.
-    print('Computing regression metrics on curated tests sets...')
-    test_random_state = np.random.RandomState(test_set_random_seed)
     compute_regression_metrics_for_model = functools.partial(compute_regression_metrics,
                                                              vocab_size=landscape.vocab_size,
                                                              flatten_inputs=flatten_inputs)
@@ -298,47 +314,13 @@ def run_regression_experiment(
                                                      ref_seq=landscape.wildtype_sequence)
     train_metrics = compute_regression_metrics_for_model(model, train_df)
     run_metrics['train'] = train_metrics
-    for distance in test_set_distances:
-        # epistatic test set
-        print('Constructing adaptive epistatic test set...')
-        epistatic_seqs = epistasis_selection.get_epistatic_seqs_for_landscape(
-            landscape=landscape,
-            distance=distance,
-            n=test_set_n,
-            adaptive=True,
-            max_reuse=test_set_max_reuse,
-            top_k=test_set_epistatic_top_k,
-            random_state=test_random_state)
-        epistatic_test_df = get_fitness_df_for_landscape(epistatic_seqs)
-        epistatic_metrics = compute_regression_metrics_for_model(model, epistatic_test_df)
-        run_metrics[f'adaptive_epistatic_seqs_distance_{distance}'] = epistatic_metrics
 
-        print('Constructing deleterious epistatic test set...')
-        epistatic_seqs = epistasis_selection.get_epistatic_seqs_for_landscape(
-            landscape=landscape,
-            distance=distance,
-            n=test_set_n,
-            adaptive=False,
-            max_reuse=test_set_max_reuse,
-            top_k=test_set_epistatic_top_k,
-            random_state=test_random_state)
-        epistatic_test_df = get_fitness_df_for_landscape(epistatic_seqs)
-        epistatic_metrics = compute_regression_metrics_for_model(model, epistatic_test_df)
-        run_metrics[f'deleterious_epistatic_seqs_distance_{distance}'] = epistatic_metrics
+    test_set_name_to_seqs = get_test_sets_in_dir(test_set_dir)
+    for test_set_name, test_set_seqs in test_set_name_to_seqs:
+        test_df = get_fitness_df_for_landscape(test_set_seqs)
+        test_set_metrics = compute_regression_metrics_for_model(model, test_df)
+        run_metrics[test_set_name] = test_set_metrics
 
-        # adaptive test set
-        print('Constructing adaptive singles test set...')
-        adaptive_seqs = epistasis_selection.get_adaptive_seqs_for_landscape(
-            landscape=landscape,
-            distance=distance,
-            n=test_set_n,
-            adaptive=True,
-            max_reuse=test_set_max_reuse,
-            top_k=test_set_singles_top_k,
-            random_state=test_random_state)
-        adaptive_test_df = get_fitness_df_for_landscape(adaptive_seqs)
-        adaptive_metrics = compute_regression_metrics_for_model(model, adaptive_test_df)
-        run_metrics[f'adaptive_singles_seqs_distance_{distance}'] = adaptive_metrics
     return run_metrics
 
 
