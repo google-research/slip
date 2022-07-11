@@ -28,8 +28,8 @@ import utils
 
 class ExperimentTest(parameterized.TestCase):
     """Tests for experiment."""
-    test_set_dir= 'mock/test_sets'
-    mock_mogwai_filepath = 'mock/fakepdb_model_state_dict.npz'
+    test_set_dir= 'test_data/test_sets'
+    mogwai_filepath = 'test_data/fakepdb_model_state_dict.npz'
 
 
     @parameterized.parameters(
@@ -38,7 +38,7 @@ class ExperimentTest(parameterized.TestCase):
     )
     def test_run_regression_experiment_deterministic(self, model_name):
         regression_kwargs = dict(
-            mogwai_filepath=self.mock_mogwai_filepath,
+            mogwai_filepath=self.mogwai_filepath,
             fraction_adaptive_singles=0.9,
             fraction_reciprocal_adaptive_epistasis=None,
             epistatic_horizon=None,
@@ -75,7 +75,7 @@ class ExperimentTest(parameterized.TestCase):
     )
     def test_run_design_experiment_deterministic(self, model_name):
         design_kwargs = dict(
-            mogwai_filepath=self.mock_mogwai_filepath,
+            mogwai_filepath=self.mogwai_filepath,
             fraction_adaptive_singles=0.9,
             fraction_reciprocal_adaptive_epistasis=None,
             epistatic_horizon=None,
