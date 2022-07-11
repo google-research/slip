@@ -1,12 +1,12 @@
-"""Tests for experiment."""
+"""Utilities for writing mock test files."""
 
 import numpy as np
 import utils
 from pathlib import Path
 
-test_set_dir = 'mock/test_sets'
+test_set_dir = 'test_data/test_sets'
 mock_test_set_filepath = Path(test_set_dir) / 'fakepdb' / 'test_set_1.npz'
-mock_mogwai_filepath = 'mock/fakepdb_model_state_dict.npz'
+mock_mogwai_filepath = 'test_data/fakepdb_model_state_dict.npz'
 L = 3
 A = 5
 
