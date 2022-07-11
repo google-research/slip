@@ -19,7 +19,7 @@ from os import PathLike
 import random as python_random
 import functools
 from glob import glob
-from typing import Dict, Sequence, Tuple, Optional
+from typing import Callable, Dict, Sequence, Tuple, Optional
 from pathlib import Path
 
 import numpy as np
@@ -38,9 +38,9 @@ import tuning
 import utils
 
 
-def get_fitness_df(sequences,
-                   fitness_fn,
-                   ref_seq):
+def get_fitness_df(sequences: np.ndarray,
+                   fitness_fn: Callable,
+                   ref_seq: Sequence[int]):
     """Get a DataFrame with the fitness of the requested sequences.
 
     Args:
@@ -276,11 +276,12 @@ def run_regression_experiment(
     # Load Potts model landscape
     print('Loading tuned landscape...')
     untuned_landscape = potts_model.load_from_mogwai_npz(mogwai_filepath)
-    tuning_kwargs = tuning.get_tuning_kwargs(untuned_landscape,
-                                             fraction_adaptive_singles,
-                                             fraction_reciprocal_adaptive_epistasis,
-                                             epistatic_horizon,
-                                             normalize_to_singles=normalize_to_singles)
+    tuning_kwargs = tuning.get_tuning_kwargs(
+        untuned_landscape,
+        fraction_adaptive_singles,
+        fraction_reciprocal_adaptive_epistasis,
+        epistatic_horizon,
+        normalize_to_singles=normalize_to_singles)
     landscape = potts_model.load_from_mogwai_npz(
         mogwai_filepath,
         **tuning_kwargs)
@@ -288,12 +289,13 @@ def run_regression_experiment(
     # Sample a training dataset.
     print('Sampling training set...')
     training_random_state = np.random.RandomState(training_set_random_seed)
-    train_df = get_samples_around_wildtype(landscape,
-                                           training_set_num_samples,
-                                           training_set_min_num_mutations,
-                                           training_set_max_num_mutations,
-                                           training_set_include_singles,
-                                           training_random_state)
+    train_df = get_samples_around_wildtype(
+        landscape,
+        training_set_num_samples,
+        training_set_min_num_mutations,
+        training_set_max_num_mutations,
+        training_set_include_singles,
+        training_random_state)
 
     # Keras reproducibility
     np.random.seed(model_random_seed)
