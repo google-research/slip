@@ -16,7 +16,7 @@
 
 from collections import Counter
 import itertools
-from typing import Iterable, Tuple, List
+from typing import Iterable, List, Sequence, Tuple
 
 import numpy as np
 
@@ -56,6 +56,16 @@ def combine_k_rounds(num_rounds: int,
         all_samples.extend(
             utils.merge_multiple_mutation_sets(mutation_combination))
     return all_samples
+
+
+def filter_mutation_sets_for_reference(mutation_sets: Iterable[Tuple[Mutation, ...]],
+                                       reference_seq: Sequence[int]) -> List[Tuple[Mutation, ...]]:
+    """Remove any mutation sets from `mutation_sets` that include a mutation corresponding to the reference sequence."""
+    filtered_mutation_sets = []
+    for mutation_set in mutation_sets:
+        if all([reference_seq[pos] != aa for (pos, aa) in mutation_set]):
+            filtered_mutation_sets.append(mutation_set)
+    return filtered_mutation_sets
 
 
 def filter_mutation_sets_by_position(mutation_sets: Iterable[Tuple[Mutation, ...]],
@@ -121,8 +131,7 @@ def get_top_k_single_mutations(landscape: potts_model.PottsModel, adaptive: bool
                                                      landscape.evaluate,
                                                      top_n=top_k,
                                                      get_highest=adaptive)
-    mutation_sets = filter_mutation_sets_by_position(
-        mutation_sets, limit=max_reuse)
+    mutation_sets = filter_mutation_sets_by_position(mutation_sets, limit=max_reuse)
     print(f'{len(mutation_sets)} singles after filtering {top_k}')
     return mutation_sets
 
@@ -146,9 +155,9 @@ def combine_mutations_and_subset(mutation_sets: Iterable[Tuple[Mutation, ...]],
     Return:
       A List of sequences of distance `target_distance` from the `wildtype_sequence`.
     """
+    mutation_sets = filter_mutation_sets_for_reference(mutation_sets, wildtype_sequence)
     all_combined = combine_k_rounds(num_rounds, mutation_sets)
-    all_combined = [element for element in all_combined if len(
-        element) == target_distance]
+    all_combined = [element for element in all_combined if len(element) == target_distance]
 
     if len(all_combined) < n:
         raise ValueError(
