@@ -63,9 +63,7 @@ def filter_mutation_sets_for_reference(mutation_sets: Iterable[Tuple[Mutation, .
     """Remove any mutation sets from `mutation_sets` that include a mutation corresponding to the reference sequence."""
     filtered_mutation_sets = []
     for mutation_set in mutation_sets:
-        if any([reference_seq[pos] == aa for (pos, aa) in mutation_set]):
-            continue
-        else:
+        if all([reference_seq[pos] != aa for (pos, aa) in mutation_set]):
             filtered_mutation_sets.append(mutation_set)
     return filtered_mutation_sets
 
