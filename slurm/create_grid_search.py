@@ -1,33 +1,29 @@
 """Script for generating a SLURM gridsearch."""
 from datetime import datetime
-import itertools
 import json
 from os import PathLike
-from typing import Dict
+from typing import Iterable, Dict
 
 from pathlib import Path
 
+import slurm_utils
 
 LOG_DIRECTORY = '/global/scratch/projects/fc_songlab/nthomas/slip/log/'
 
-defaults = {
+global_defaults = {
     'fraction_adaptive_singles': None,
     'fraction_reciprocal_adaptive_epistasis': None,
     'normalize_to_singles': True,
-    'model_random_seed': 0,
     'test_set_dir': '/global/scratch/projects/fc_songlab/nthomas/slip/data/',
     'training_set_min_num_mutations': 0,
     'training_set_max_num_mutations': 3,
     'training_set_num_samples': 5000,
-
 }
 
-
-options = {
+global_options = {
     'training_set_random_seed': list(range(20)),
     'epistatic_horizon': [2.0, 4.0, 6.0, 8.0, 16.0, 32.0],
     'training_set_include_singles': [True, False],
-    'model_name': ['linear', 'cnn'],
     'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
                         "/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz",
                         "/global/home/users/nthomas/git/slip/data/3gfb_1_A_model_state_dict.npz",
@@ -35,43 +31,50 @@ options = {
                         "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz"]
 }
 
+linear_defaults = {
+    'model_name': 'linear',
+    'model_random_seed': 0,
+}
+
+linear_options = {
+    'alpha': [0.001, 0.01, 0.1, 1.0, 10.0]
+}
+
+cnn_defaults = {
+    'model_name': 'cnn',
+}
+
+cnn_options = {
+    'learning_rate': [0.001, ],
+    'num_epochs': [500],
+    'hidden_dim': [128, ],
+    # num layers
+    'model_random_seed': [0, 1, 2],
+}
+
+local_defaults_list = [linear_defaults, cnn_defaults]
+local_options_list = [linear_options, cnn_options]
+
 SBATCH_TEMPLATE_FILEPATH = Path('run_experiment_template.txt')
 
 
-def product_dict(**kwargs):
-    """Returns the dictionaries representing the cartesian product over all keyword arguments.
-
-    Example usage:
-    >>> list(product_dict(num=[1, 2], alpha=['a', 'b']))
-    [{'num': 1, 'alpha': 'a'},
-     {'num': 2, 'alpha': 'a'},
-     {'num': 1, 'alpha': 'b'},
-     {'num': 2, 'alpha': 'b'},]
-    """
-    keys = kwargs.keys()
-    vals = kwargs.values()
-    for instance in itertools.product(*vals):
-        yield dict(zip(keys, instance))
-
-
-def update_dict(input_dict: Dict, update_dict: Dict) -> Dict:
-    """Returns a dict including (key: value) pairs in both `input_dict` and `update_dict`."""
-    return dict(input_dict, **update_dict)
-
-
-def write_regression_params(options: Dict, defaults: Dict, outfile: PathLike) -> None:
+def write_regression_params(outfile: PathLike,
+                            global_defaults: Dict,
+                            global_options: Dict,
+                            local_defaults_list: Iterable[Dict],
+                            local_options_list: Iterable[Dict]) -> None:
     """Writes a json of regression parameters.
 
     Args:
-        options: A dictionary with iterable values.
-        defaults: A dictionary with atomic values.
         outfile: A filepath to write the job parameters.
+        defaults: A dictionary with atomic values.
+        options: A dictionary with iterable values.
+
 
     The intention is for the outfile to be in the same directory as the
-    run logs.
+    run logs, so that logs can be compared to the parameters that generated them.
     """
-    json_lines = [json.dumps(update_dict(d, defaults)) for d in product_dict(**options)]
-
+    json_lines = slurm_utils.get_params_json(global_defaults, global_options, local_defaults_list, local_options_list)
     with open(outfile, 'w') as f:
         f.write('\n'.join(json_lines))
 
@@ -90,12 +93,21 @@ def write_sbatch_script(batch_id: str, template_filepath: PathLike, out_filepath
         f.write(text)
 
 
-def write_options_and_defaults(options: Dict, defaults: Dict, directory: PathLike) -> None:
-    """Write the experiment options to the log directory."""
-    with open(directory / Path('defaults.json'), 'w') as f:
-        json.dump(defaults, f)
-    with open(directory / Path('options.json'), 'w') as f:
-        json.dump(options, f)
+def write_options_and_defaults(directory: PathLike,
+                               global_defaults: Dict,
+                               global_options: Dict,
+                               local_defaults_list: Iterable[Dict],
+                               local_options_list: Iterable[Dict]) -> None:
+    """Write the experiment options to the log directory.
+
+    These files are more readable than the gridsearch params file, and can be parsed to
+    reproduce the full gridsearch."""
+    for defaults in [global_defaults] + local_defaults_list:
+        with open(directory / Path('defaults.json'), 'wa') as f:
+            json.dump(defaults, f)
+    for options in [global_options] + local_options_list:
+        with open(directory / Path('options.json'), 'wa') as f:
+            json.dump(options, f)
 
 
 def get_command_string(job_directory: PathLike) -> str:
@@ -116,14 +128,14 @@ def main():
 
     # write regression_params to the job directory
     outfile = job_directory / Path('regression_params.json')
-    write_regression_params(options, defaults, outfile)
+    write_regression_params(outfile, global_defaults, global_options, local_defaults_list, local_options_list)
 
     # read in the experiment template and add the batch ID
     outfile = job_directory / Path('run_experiment.sh')
     write_sbatch_script(batch_id, SBATCH_TEMPLATE_FILEPATH, outfile)
 
     # write the options into a text file for human readability
-    write_options_and_defaults(options, defaults, job_directory)
+    write_options_and_defaults(job_directory, global_defaults, global_options, local_defaults_list, local_options_list)
 
     print(get_command_string(job_directory))
     return job_directory
