@@ -15,9 +15,9 @@
 
 """Model utilities."""
 
-from typing import Any, Dict, Callable, Optional, Tuple
+import functools
+from typing import Callable, Dict
 
-import numpy as np
 from sklearn import ensemble
 from sklearn import linear_model
 import tensorflow as tf
@@ -26,8 +26,11 @@ import tensorflow as tf
 class KerasModelWrapper:
     """Wraps a Keras model to have the sklearn model interface."""
 
-    def __init__(self, model_build_fn, sequence_length,
-                 vocab_size, fit_kwargs):
+    def __init__(self,
+                 model_build_fn: Callable,
+                 sequence_length: int,
+                 vocab_size: int,
+                 fit_kwargs: Dict = dict()):
         """Initialize a KerasModelWrapper.
 
         Args:
@@ -40,7 +43,7 @@ class KerasModelWrapper:
               https://keras.io/api/models/model_training_apis/ for more details.
         """
         self._model_build_fn = model_build_fn
-        self._fit_kwargs = fit_kwargs if fit_kwargs else dict()
+        self._fit_kwargs = fit_kwargs
         self._sequence_length = sequence_length
         self._vocab_size = vocab_size
 
@@ -58,16 +61,19 @@ class KerasModelWrapper:
     # pylint: enable=invalid-name
 
 
-def build_cnn_model(sequence_length,
-                    vocab_size):
+def build_cnn_model(sequence_length: int,
+                    vocab_size: int,
+                    num_filters: int,
+                    kernel_size: int,
+                    hidden_size: int,
+                    adam_learning_rate: float):
     """Returns a 1D CNN model.
 
-    This model consists of 3 layers of 1D convs, followed by a dense layer. Each
-    convolution has 32 filters and a kernel size of 5. The optimizer is configured
-    to be Adam with a learning rate of 1e-4.
+    This model consists of 3 layers of 1D convs, followed by a dense layer.
+    The optimizer is configured to be Adam.
 
-    For example, for an input sequence of length 118, with vocab size 20,
-    model.summary() returns:
+    For example, for an input sequence of length 118, with vocab size 20, 32 filters,
+    kernel_size=5, hidden_size=64, model.summary() returns:
 
       Layer (type)                 Output Shape              Param #
     =================================================================
@@ -97,19 +103,15 @@ def build_cnn_model(sequence_length,
     input_shape = (sequence_length, vocab_size)
     dropout_prob = 0.25
 
-    # 32 filters, kernel width 5
-    model.add(
-        tf.keras.layers.Conv1D(
-            32, 5, activation='relu', input_shape=input_shape, padding='same'))
-    model.add(tf.keras.layers.Conv1D(32, 5, activation='relu', padding='same'))
-    model.add(tf.keras.layers.Conv1D(32, 5, activation='relu', padding='same'))
+    model.add(tf.keras.layers.Conv1D(num_filters, kernel_size, activation='relu', input_shape=input_shape, padding='same'))
+    model.add(tf.keras.layers.Conv1D(num_filters, kernel_size, activation='relu', padding='same'))
+    model.add(tf.keras.layers.Conv1D(num_filters, kernel_size, activation='relu', padding='same'))
     model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(64, activation='relu'))
+    model.add(tf.keras.layers.Dense(hidden_size, activation='relu'))
     model.add(tf.keras.layers.Dropout(dropout_prob, seed=0))
     model.add(tf.keras.layers.Dense(1))
     model.summary()
 
-    adam_learning_rate = 0.0001
     model.compile(
         optimizer=tf.keras.optimizers.Adam(learning_rate=adam_learning_rate),
         loss='mse',
@@ -117,17 +119,28 @@ def build_cnn_model(sequence_length,
     return model
 
 
-def get_model(model_name, sequence_length,
-              vocab_size):
+def get_model(model_name,
+              sequence_length: int,
+              vocab_size: int,
+              ridge_alpha: float=1.0,
+              cnn_batch_size: int=64,
+              cnn_num_epochs: int=500,
+              cnn_num_filters: int=32,
+              cnn_kernel_size: int=5,
+              cnn_hidden_size: int=64,
+              cnn_adam_learning_rate: float=0.0001):
     """Returns model, flatten_inputs."""
     if model_name == 'linear':
         flatten_inputs = True
-        return linear_model.Ridge(), flatten_inputs
+        model = linear_model.Ridge(alpha=ridge_alpha)
+        return model, flatten_inputs
     elif model_name == 'cnn':
         flatten_inputs = False
-        fit_kwargs = {'batch_size': 64, 'epochs': 500}
-        return KerasModelWrapper(build_cnn_model, sequence_length, vocab_size,
-                                 fit_kwargs), flatten_inputs
+        fit_kwargs = {'batch_size': cnn_batch_size, 'epochs': cnn_num_epochs}
+        build_model = functools.partial(build_cnn_model, num_filters=cnn_num_filters, kernel_size=cnn_kernel_size,
+                                        hidden_size=cnn_hidden_size, adam_learning_rate=cnn_adam_learning_rate)
+        model = KerasModelWrapper(build_model, sequence_length, vocab_size, fit_kwargs)
+        return model, flatten_inputs
     elif model_name == 'random_forest':
         flatten_inputs = True
         return ensemble.RandomForestRegressor(), flatten_inputs

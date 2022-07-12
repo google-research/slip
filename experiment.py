@@ -269,9 +269,11 @@ def run_regression_experiment(
         training_set_num_samples: int,
         training_set_include_singles: bool,
         training_set_random_seed: int,
+        test_set_dir: str,
         model_name: str,
         model_random_seed: int,
-        test_set_dir: str):
+        model_kwarg_dict: Dict,
+):
     """Returns metrics for a regression experiment."""
     # Load Potts model landscape
     print('Loading tuned landscape...')
@@ -307,7 +309,8 @@ def run_regression_experiment(
     sequence_length = len(landscape.wildtype_sequence)
     model, flatten_inputs = models.get_model(model_name,
                                              sequence_length,
-                                             landscape.vocab_size)
+                                             landscape.vocab_size,
+                                             **model_kwarg_dict)
 
     fit_model(model, train_df, landscape.vocab_size, flatten_inputs)
     run_metrics = {}
