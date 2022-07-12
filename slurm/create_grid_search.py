@@ -105,11 +105,11 @@ def write_options_and_defaults(directory: PathLike,
 
     These files are more readable than the gridsearch params file, and can be parsed to
     reproduce the full gridsearch."""
-    for defaults in [global_defaults] + local_defaults_list:
-        with open(directory / Path('defaults.json'), 'wa') as f:
+    with open(directory / Path('defaults.json'), 'w') as f:
+        for defaults in [global_defaults] + local_defaults_list:
             json.dump(defaults, f)
-    for options in [global_options] + local_options_list:
-        with open(directory / Path('options.json'), 'wa') as f:
+    with open(directory / Path('options.json'), 'w') as f:
+        for options in [global_options] + local_options_list:
             json.dump(options, f)
 
 
