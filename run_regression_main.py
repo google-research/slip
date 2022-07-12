@@ -30,7 +30,7 @@ def main(kwargs_json, output_dir, job_id):
     # get the model configuration kwargs separately and handle them as dictionary
     model_kwargs_dict = {}
     for name in model_configuration_kwargs:
-        if name in model_kwargs_dict:
+        if name in kwargs:
             model_kwargs_dict[name] = kwargs[name]
             del kwargs[name]
     kwargs['model_kwargs_dict'] = model_kwargs_dict
