@@ -21,38 +21,16 @@ import tempfile
 from absl.testing import absltest
 from absl.testing import parameterized
 import numpy as np
+
 import experiment
+import utils
 
 
 class ExperimentTest(parameterized.TestCase):
+    """Tests for experiment."""
+    test_set_dir= 'test_data/test_sets'
+    mogwai_filepath = 'test_data/fakepdb_model_state_dict.npz'
 
-    def _write_mock_mogwai_state_dict(self):
-        l = 3
-        v = 2
-        bias = np.ones((l, v))
-        weight = np.zeros((l, v, l, v))
-        query_seq = np.zeros(l)
-
-        state_dict = {
-            'bias': bias,
-            'weight': weight,
-            'query_seq': query_seq,
-        }
-
-        _, filepath = tempfile.mkstemp(suffix='.npz')
-
-        np.savez(filepath, **state_dict)
-
-        self._vocab_size = v
-        self._mock_mogwai_filepath = filepath
-
-    def setUp(self):
-        super().setUp()
-        self._write_mock_mogwai_state_dict()
-
-    def tearDown(self):
-        super().tearDown()
-        os.remove(self._mock_mogwai_filepath)
 
     @parameterized.parameters(
         ('cnn'),
@@ -60,12 +38,11 @@ class ExperimentTest(parameterized.TestCase):
     )
     def test_run_regression_experiment_deterministic(self, model_name):
         regression_kwargs = dict(
-            mogwai_filepath=self._mock_mogwai_filepath,
-            potts_coupling_scale=1.0,
-            potts_field_scale=1.0,
-            potts_single_mut_offset=0.0,
-            potts_epi_offset=0.0,
-            vocab_size=self._vocab_size,
+            mogwai_filepath=self.mogwai_filepath,
+            fraction_adaptive_singles=0.9,
+            fraction_reciprocal_adaptive_epistasis=None,
+            epistatic_horizon=None,
+            normalize_to_singles=False,
             training_set_min_num_mutations=0,
             training_set_max_num_mutations=3,
             training_set_num_samples=100,
@@ -73,19 +50,19 @@ class ExperimentTest(parameterized.TestCase):
             training_set_random_seed=0,
             model_name=model_name,
             model_random_seed=0,
-            metrics_random_split_fraction=0.8,
-            metrics_random_split_random_seed=0,
-            metrics_distance_split_radii=[1, 2])
-        run_one = experiment.run_regression_experiment(**regression_kwargs)
-        run_two = experiment.run_regression_experiment(**regression_kwargs)
+            test_set_dir=self.test_set_dir)
+        run_one = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
+        run_two = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
         # Test deterministic runs.
         self.assertEqual(run_one, run_two)
 
+        # test that expected metrics are there.
         expected_split_keys = [
-            'random_split', 'distance_split_1', 'distance_split_2'
+            'train',
+            'test_set_1',
         ]
         expected_metric_keys = [
-            'mse', 'std_test', 'std_predicted', 'test_size', 'train_size'
+            'mse', 'std_test', 'std_predicted', 'test_size'
         ]
         for split_key in expected_split_keys:
             self.assertIn(split_key, run_one.keys())
@@ -98,12 +75,11 @@ class ExperimentTest(parameterized.TestCase):
     )
     def test_run_design_experiment_deterministic(self, model_name):
         design_kwargs = dict(
-            mogwai_filepath=self._mock_mogwai_filepath,
-            potts_coupling_scale=1.0,
-            potts_field_scale=1.0,
-            potts_single_mut_offset=0.0,
-            potts_epi_offset=0.0,
-            vocab_size=self._vocab_size,
+            mogwai_filepath=self.mogwai_filepath,
+            fraction_adaptive_singles=0.9,
+            fraction_reciprocal_adaptive_epistasis=None,
+            epistatic_horizon=None,
+            normalize_to_singles=False,
             training_set_min_num_mutations=0,
             training_set_max_num_mutations=3,
             training_set_num_samples=100,
@@ -122,13 +98,14 @@ class ExperimentTest(parameterized.TestCase):
             design_metrics_cluster_hamming_distance=3,
             design_metrics_fitness_percentiles=[0.5, 0.9],
         )
-        run_one = experiment.run_design_experiment(**design_kwargs)
-        run_two = experiment.run_design_experiment(**design_kwargs)
+        run_one = experiment.run_design_experiment(**design_kwargs)  # type: ignore
+        run_two = experiment.run_design_experiment(**design_kwargs)  # type: ignore
         # Test deterministic runs.
         self.assertEqual(run_one, run_two)
 
         expected_keys = [
-            'diversity_normalize_hit_rate', '0.5_percentile_fitness',
+            'diversity_normalize_hit_rate',
+            '0.5_percentile_fitness',
             '0.9_percentile_fitness'
         ]
         for key in expected_keys:
