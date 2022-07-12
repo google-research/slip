@@ -45,7 +45,15 @@ class ModelsTest(parameterized.TestCase):
         sequence_length = 3
         vocab_size = 3
         for model_type in ['linear', 'cnn']:
-            model, flatten_inputs = models.get_model(model_type, sequence_length, vocab_size, cnn_num_filters=2, cnn_kernel_size=1, cnn_hidden_size=12, cnn_batch_size=1, cnn_num_epochs=1)
+            model, flatten_inputs = models.get_model(
+                model_type,
+                sequence_length,
+                vocab_size,
+                cnn_num_filters=2,
+                cnn_kernel_size=1,
+                cnn_hidden_size=12,
+                cnn_batch_size=1,
+                cnn_num_epochs=1)
             if flatten_inputs:
                 x = utils.one_hot_and_flatten(np.array(sequences), num_classes=vocab_size)
             else:
