@@ -22,6 +22,10 @@ def get_test_sets(landscape: potts_model.PottsModel,
                   random_state: np.random.RandomState) -> Dict[str, np.ndarray]:
     """Returns a dictionary mapping string labels to arrays of sequences.
 
+    Note that because we generate test sequences using the rank ordering of epistatic effects and
+    linear effects, they are not sensitive to landscape tuning, and can be reused for all
+    tuned versions of the same landscape.
+
     See the docstrings for epistasis_selection.get_epistatic_seqs_for_landscape and
     epistasis_selection.get_adaptive_seqs_for_landscape for details on the arguments."""
     test_set_name_to_seqs = {}
