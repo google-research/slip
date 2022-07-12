@@ -108,9 +108,11 @@ def write_options_and_defaults(directory: PathLike,
     with open(directory / Path('defaults.json'), 'w') as f:
         for defaults in [global_defaults] + local_defaults_list:
             json.dump(defaults, f)
+            f.write('\n')
     with open(directory / Path('options.json'), 'w') as f:
         for options in [global_options] + local_options_list:
             json.dump(options, f)
+            f.write('\n')
 
 
 def get_command_string(job_directory: PathLike) -> str:
