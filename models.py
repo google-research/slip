@@ -123,6 +123,7 @@ def get_model(model_name,
               sequence_length: int,
               vocab_size: int,
               ridge_alpha: float=1.0,
+              ridge_fit_intercept: bool=False,
               cnn_batch_size: int=64,
               cnn_num_epochs: int=500,
               cnn_num_filters: int=32,
@@ -132,7 +133,7 @@ def get_model(model_name,
     """Returns model, flatten_inputs."""
     if model_name == 'linear':
         flatten_inputs = True
-        model = linear_model.Ridge(alpha=ridge_alpha)
+        model = linear_model.Ridge(alpha=ridge_alpha, fit_intercept=ridge_fit_intercept)
         return model, flatten_inputs
     elif model_name == 'cnn':
         flatten_inputs = False
