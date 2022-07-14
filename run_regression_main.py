@@ -11,6 +11,7 @@ import experiment
 
 model_configuration_kwargs = (
     'ridge_alpha',
+    'ridge_fit_intercept',
     'cnn_batch_size',
     'cnn_num_epochs',
     'cnn_num_filters',
@@ -28,12 +29,12 @@ def main(kwargs_json, output_dir, job_id):
     """
     kwargs = json.loads(kwargs_json)
     # get the model configuration kwargs separately and handle them as dictionary
-    model_kwargs_dict = {}
+    model_kwargs = {}
     for name in model_configuration_kwargs:
         if name in kwargs:
-            model_kwargs_dict[name] = kwargs[name]
+            model_kwargs[name] = kwargs[name]
             del kwargs[name]
-    kwargs['model_kwargs_dict'] = model_kwargs_dict
+    kwargs['model_kwargs'] = model_kwargs
     print(kwargs)
     metrics = experiment.run_regression_experiment(**kwargs)
     print(metrics)
