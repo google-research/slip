@@ -2,9 +2,10 @@
 from datetime import datetime
 import json
 from os import PathLike
+from pathlib import Path
 from typing import Iterable, Dict
 
-from pathlib import Path
+import numpy as np
 
 import slurm_utils
 
@@ -18,41 +19,39 @@ global_defaults = {
     'training_set_min_num_mutations': 0,
     'training_set_max_num_mutations': 3,
     'training_set_num_samples': 5000,
+    'training_set_include_singles': False,
 }
 
 global_options = {
-    'training_set_random_seed': list(range(10)),
+    'training_set_random_seed': list(range(5)),
     'epistatic_horizon': [2.0, 4.0, 6.0, 8.0, 16.0, 32.0],
-    'training_set_include_singles': [True, False],
     'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3gfb_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz"]
+                        "/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz"]
 }
 
 linear_defaults = {
     'model_name': 'linear',
     'model_random_seed': 0,
+    'ridge_fit_intercept': False
 }
 
 linear_options = {
-    'ridge_alpha': [0.001, 0.01, 0.1, 1.0, 10.0]
+    'ridge_alpha': 10**np.linspace(-3, 1, 11),
 }
 
 cnn_defaults = {
     'model_name': 'cnn',
     'cnn_kernel_size': 5,
     'cnn_batch_size': 64,
+    'cnn_hidden_size': 64,
+    'model_random_seed': 0,
 }
 
 cnn_options = {
     'cnn_adam_learning_rate': [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
     'cnn_num_epochs': [100, 500, 1000],
-    'cnn_num_filters': [32, 64, 128],
-    'cnn_hidden_size': [64, 256],
+    'cnn_num_filters': [16, 32, 64, 128],
     # num_layers
-    'model_random_seed': [0, 1, 2],
 }
 
 local_defaults_list = [linear_defaults, cnn_defaults]
