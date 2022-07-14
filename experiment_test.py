@@ -48,9 +48,11 @@ class ExperimentTest(parameterized.TestCase):
             training_set_num_samples=100,
             training_set_include_singles=True,
             training_set_random_seed=0,
+            test_set_dir=self.test_set_dir,
             model_name=model_name,
             model_random_seed=0,
-            test_set_dir=self.test_set_dir)
+            model_kwargs={'cnn_adam_learning_rate': 0.1, 'cnn_num_filters': 2},
+            )
         run_one = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
         run_two = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
         # Test deterministic runs.
@@ -87,6 +89,7 @@ class ExperimentTest(parameterized.TestCase):
             training_set_random_seed=0,
             model_name=model_name,
             model_random_seed=0,
+            model_kwargs={'cnn_num_filters': 8, 'cnn_hidden_size': 32},
             mbo_random_seed=0,
             mbo_num_designs=1000,
             inner_loop_solver_top_k=50,

@@ -269,9 +269,11 @@ def run_regression_experiment(
         training_set_num_samples: int,
         training_set_include_singles: bool,
         training_set_random_seed: int,
+        test_set_dir: str,
         model_name: str,
         model_random_seed: int,
-        test_set_dir: str):
+        model_kwargs: Dict,
+):
     """Returns metrics for a regression experiment."""
     # Load Potts model landscape
     print('Loading tuned landscape...')
@@ -307,7 +309,8 @@ def run_regression_experiment(
     sequence_length = len(landscape.wildtype_sequence)
     model, flatten_inputs = models.get_model(model_name,
                                              sequence_length,
-                                             landscape.vocab_size)
+                                             landscape.vocab_size,
+                                             model_kwargs)
 
     fit_model(model, train_df, landscape.vocab_size, flatten_inputs)
     run_metrics = {}
@@ -346,6 +349,7 @@ def run_design_experiment(
     training_set_random_seed: int,
     model_name: str,
     model_random_seed: int,
+    model_kwargs: Dict,
     mbo_num_designs: int,
     mbo_random_seed: int,
     inner_loop_solver_top_k: int,
@@ -385,8 +389,10 @@ def run_design_experiment(
 
     # MBO
     sequence_length = len(landscape.wildtype_sequence)
-    model, flatten_inputs = models.get_model(model_name, sequence_length,
-                                             landscape.vocab_size)
+    model, flatten_inputs = models.get_model(model_name,
+                                             sequence_length,
+                                             landscape.vocab_size,
+                                             model_kwargs)
     inner_loop_solver = solver.RandomMutationSolver(
         inner_loop_solver_min_mutations,
         inner_loop_solver_max_mutations,

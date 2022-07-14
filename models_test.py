@@ -14,6 +14,7 @@
 # limitations under the License.
 
 """Tests for models."""
+import functools
 
 from absl.testing import absltest
 from absl.testing import parameterized
@@ -43,9 +44,21 @@ class ModelsTest(parameterized.TestCase):
     def test_fit_predict(self, sequences):
         sequence_length = 3
         vocab_size = 3
-        model = models.KerasModelWrapper(
-            models.build_cnn_model, sequence_length, vocab_size, fit_kwargs={})
-        x = utils.onehot(np.array(sequences), num_classes=vocab_size)
+        for model_type in ['linear', 'cnn']:
+            model_kwargs = dict(cnn_num_filters=2,
+                                cnn_kernel_size=1,
+                                cnn_hidden_size=12,
+                                cnn_batch_size=1,
+                                cnn_num_epochs=1)
+            model, flatten_inputs = models.get_model(
+                model_type,
+                sequence_length,
+                vocab_size,
+                model_kwargs)
+            if flatten_inputs:
+                x = utils.one_hot_and_flatten(np.array(sequences), num_classes=vocab_size)
+            else:
+                x = utils.onehot(np.array(sequences), num_classes=vocab_size)
         y = np.ones(len(sequences))
         model.fit(x, y)
         output_shape = (len(sequences),)
