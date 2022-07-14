@@ -119,28 +119,56 @@ def build_cnn_model(sequence_length: int,
     return model
 
 
+def build_linear_model(model_kwargs):
+    # set defaults
+    default_kwargs = {
+        'ridge_alpha': 1.0,
+        'ridge_fit_intercept': True,
+    }
+    kwargs = default_kwargs.copy()
+    for key in default_kwargs.keys():
+        if key in model_kwargs:
+            kwargs[key] = model_kwargs[key]
+
+    model = linear_model.Ridge(alpha=kwargs['ridge_alpha'], fit_intercept=kwargs['fit_intercept'])
+    flatten_inputs = True
+    return model, flatten_inputs
+
+
+def build_cnn(sequence_length, vocab_size, model_kwargs):
+    default_kwargs = {
+        'cnn_batch_size': 64,
+        'cnn_num_epochs': 500,
+        'cnn_num_filters': 32,
+        'cnn_kernel_size': 5,
+        'cnn_hidden_size': 64,
+        'cnn_adam_learning_rate': 0.0001
+    }
+
+    kwargs = default_kwargs.copy()
+    for key in default_kwargs.keys():
+        if key in model_kwargs:
+            kwargs[key] = model_kwargs[key]
+    build_model = functools.partial(build_cnn_model,
+                                    num_filters=kwargs['cnn_num_filters'],
+                                    kernel_size=kwargs['cnn_kernel_size'],
+                                    hidden_size=kwargs['cnn_hidden_size'],
+                                    adam_learning_rate=kwargs['cnn_adam_learning_rate'])
+    fit_kwargs = {'batch_size': kwargs['cnn_batch_size'], 'epochs': kwargs['cnn_num_epochs']}
+    model = KerasModelWrapper(build_model, sequence_length, vocab_size, fit_kwargs)
+    flatten_inputs = False
+    return model, flatten_inputs
+
+
 def get_model(model_name,
               sequence_length: int,
               vocab_size: int,
-              ridge_alpha: float=1.0,
-              cnn_batch_size: int=64,
-              cnn_num_epochs: int=500,
-              cnn_num_filters: int=32,
-              cnn_kernel_size: int=5,
-              cnn_hidden_size: int=64,
-              cnn_adam_learning_rate: float=0.0001):
+              model_kwargs: Dict):
     """Returns model, flatten_inputs."""
     if model_name == 'linear':
-        flatten_inputs = True
-        model = linear_model.Ridge(alpha=ridge_alpha)
-        return model, flatten_inputs
+        return build_linear_model(model_kwargs)
     elif model_name == 'cnn':
-        flatten_inputs = False
-        fit_kwargs = {'batch_size': cnn_batch_size, 'epochs': cnn_num_epochs}
-        build_model = functools.partial(build_cnn_model, num_filters=cnn_num_filters, kernel_size=cnn_kernel_size,
-                                        hidden_size=cnn_hidden_size, adam_learning_rate=cnn_adam_learning_rate)
-        model = KerasModelWrapper(build_model, sequence_length, vocab_size, fit_kwargs)
-        return model, flatten_inputs
+        return build_cnn(sequence_length, vocab_size, model_kwargs)
     elif model_name == 'random_forest':
         flatten_inputs = True
         return ensemble.RandomForestRegressor(), flatten_inputs
