@@ -51,7 +51,7 @@ class ExperimentTest(parameterized.TestCase):
             test_set_dir=self.test_set_dir,
             model_name=model_name,
             model_random_seed=0,
-            model_kwarg_dict={'ridge_alpha': 0.1, 'cnn_num_filters': 2},
+            model_kwarg_dict={'cnn_adama_learning_rate': 0.1, 'cnn_num_filters': 2},
             )
         run_one = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
         run_two = experiment.run_regression_experiment(**regression_kwargs)  # type: ignore
