@@ -130,7 +130,7 @@ def build_linear_model(model_kwargs):
         if key in model_kwargs:
             kwargs[key] = model_kwargs[key]
 
-    model = linear_model.Ridge(alpha=kwargs['ridge_alpha'], fit_intercept=kwargs['fit_intercept'])
+    model = linear_model.Ridge(alpha=kwargs['ridge_alpha'], fit_intercept=kwargs['ridge_fit_intercept'])
     flatten_inputs = True
     return model, flatten_inputs
 
