@@ -36,7 +36,7 @@ linear_defaults = {
 }
 
 linear_options = {
-    'ridge_alpha': 10**np.linspace(-3, 1, 11),
+    'ridge_alpha': list(10**np.linspace(-3, 1, 11)),
 }
 
 cnn_defaults = {
