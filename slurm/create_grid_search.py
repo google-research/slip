@@ -16,14 +16,14 @@ global_defaults = {
     'fraction_reciprocal_adaptive_epistasis': None,
     'normalize_to_singles': True,
     'test_set_dir': '/global/scratch/projects/fc_songlab/nthomas/slip/data/',
-    'training_set_min_num_mutations': 0,
+    'training_set_min_num_mutations': 1,
     'training_set_max_num_mutations': 3,
     'training_set_num_samples': 5000,
     'training_set_include_singles': False,
 }
 
 global_options = {
-    'training_set_random_seed': list(range(5)),
+    'training_set_random_seed': list(range(20)),
     'epistatic_horizon': [2.0, 4.0, 6.0, 8.0, 16.0, 32.0],
     'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
                         "/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz"]
@@ -36,22 +36,21 @@ linear_defaults = {
 }
 
 linear_options = {
-    'ridge_alpha': list(10**np.linspace(-3, 1, 11)),
+    'ridge_alpha': list(10**np.linspace(-3, 2, 11)),
 }
 
 cnn_defaults = {
     'model_name': 'cnn',
     'cnn_kernel_size': 5,
-    'cnn_batch_size': 64,
     'cnn_hidden_size': 64,
     'model_random_seed': 0,
 }
 
 cnn_options = {
-    'cnn_adam_learning_rate': [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
+    'cnn_adam_learning_rate': list(10**np.linspace(-3, -2, 11)),
+    'cnn_batch_size': [64, 128],
     'cnn_num_epochs': [100, 500, 1000],
-    'cnn_num_filters': [16, 32, 64, 128],
-    # num_layers
+    'cnn_num_filters': [16, 32, 64],
 }
 
 local_defaults_list = [linear_defaults, cnn_defaults]

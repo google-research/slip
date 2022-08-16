@@ -1,6 +1,7 @@
 """Entry point for running regression experiments."""
 import argparse
 from pathlib import Path
+from typing import Iterable
 
 import json
 
@@ -19,6 +20,14 @@ model_configuration_kwargs = (
     'cnn_hidden_size',
     'cnn_adam_learning_rate')
 
+def get_model_kwargs_dict(kwargs: dict, model_configuration_kwargs: Iterable):
+    """Move all keyword arguments corresponding to `model_configuration_kwargs` from `kwargs` to a separate dictionary."""
+    model_kwargs = {}
+    for name in model_configuration_kwargs:
+        if name in kwargs:
+            model_kwargs[name] = kwargs[name]
+    return model_kwargs
+
 def main(kwargs_json, output_dir, job_id):
     """Main function for sbatch run.
 
@@ -29,11 +38,9 @@ def main(kwargs_json, output_dir, job_id):
     """
     kwargs = json.loads(kwargs_json)
     # get the model configuration kwargs separately and handle them as dictionary
-    model_kwargs = {}
+    model_kwargs = get_model_kwargs_dict(kwargs, model_configuration_kwargs)
     for name in model_configuration_kwargs:
-        if name in kwargs:
-            model_kwargs[name] = kwargs[name]
-            del kwargs[name]
+        del kwargs[name]
     kwargs['model_kwargs'] = model_kwargs
     print(kwargs)
     metrics = experiment.run_regression_experiment(**kwargs)
