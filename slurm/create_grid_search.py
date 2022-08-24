@@ -25,8 +25,10 @@ global_defaults = {
 global_options = {
     'training_set_random_seed': list(range(20)),
     'epistatic_horizon': [2.0, 4.0, 6.0, 8.0, 16.0, 32.0],
-    'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz"]
+    'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3gfb_1_A_model_state_dict.npz",
+                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz",
+                        "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz",
+                        ]
 }
 
 linear_defaults = {
