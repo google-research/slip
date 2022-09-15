@@ -24,12 +24,12 @@ global_defaults = {
 
 global_options = {
     'training_set_random_seed': list(range(20)),
-    'epistatic_horizon': [2.0, 8.0, 64.0, 1024.0],
-    'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3gfb_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz",
+    'epistatic_horizon': [128.0, 256.0, 512.0],
+    'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz",
+                        "/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
                         "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz",
+                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz",
+                        "/global/home/users/nthomas/git/slip/data/3gfb_1_A_model_state_dict.npz",
                         ]
 }
 
