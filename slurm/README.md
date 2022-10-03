@@ -35,7 +35,7 @@ vi create_gridsearch.py
 $ python create_gridsearch.py
 while read i ; do sbatch $DIR/run_experiment.sh "$i"; done < $DIR/regression_params.json
 ```
-This function a unique directory for the logfiles, and prints the sbatch command for running the gridsearch.
+This function creates a unique directory for the logfiles, and prints the sbatch command for running the gridsearch.
 
 ## Submit parallel jobs for each parameter set
 Copy the sbatch command from `create_gridsearch`. This command iterates over the

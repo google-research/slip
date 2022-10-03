@@ -62,8 +62,8 @@ def main(kwargs_json, output_dir, job_id):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Take in a line of json')
-    parser.add_argument('kwargs_json', type=str, help='a line of json')
-    parser.add_argument('output_dir', type=str, help='the output directory for metrics')
-    parser.add_argument('job_id', type=str, help='the job id')
+    parser.add_argument('--kwargs_json', type=str, help='a line of json')
+    parser.add_argument('--output_dir', type=str, help='the output directory for metrics')
+    parser.add_argument('--job_id', type=str, help='the job id')
     args = parser.parse_args()
     main(args.kwargs_json, args.output_dir, args.job_id)
