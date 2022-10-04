@@ -88,23 +88,28 @@ def exponentiate_log10_param(params):
     return [10**x for x in params]
 
 def process_raw_param_dict(raw_param_dict):
-    """Programatically update log10 parameters. Delete intermediate parameters."""
+    """Programatically update log10 parameters. Delete intermediate parameters.
+
+    TODO - sketchy that it deals with log10 in options differently than defaults"""
     param_dict = {}
     param_dict['global_defaults'] = raw_param_dict['global_defaults']
     param_dict['global_options'] = raw_param_dict['global_options']
+
     param_dict['linear_defaults'] = raw_param_dict['linear_defaults']
     param_dict['cnn_defaults'] = raw_param_dict['cnn_defaults']
 
     linear_log10_param = 'ridge_alpha_log10'
     linear_options = raw_param_dict['linear_options'].copy()
-    linear_options['ridge_alpha'] = exponentiate_log10_param(raw_param_dict['linear_options'][linear_log10_param])
-    del linear_options[linear_log10_param]
+    if linear_log10_param in linear_options:
+        linear_options['ridge_alpha'] = exponentiate_log10_param(raw_param_dict['linear_options'][linear_log10_param])
+        del linear_options[linear_log10_param]
     param_dict['linear_options'] = linear_options
 
     cnn_log10_param = 'cnn_adam_learning_rate_log10'
     cnn_options = raw_param_dict['cnn_options'].copy()
-    cnn_options['cnn_adam_learning_rate'] = exponentiate_log10_param(raw_param_dict['cnn_options'][cnn_log10_param])
-    del cnn_options[cnn_log10_param]
+    if cnn_log10_param in cnn_options:
+        cnn_options['cnn_adam_learning_rate'] = exponentiate_log10_param(raw_param_dict['cnn_options'][cnn_log10_param])
+        del cnn_options[cnn_log10_param]
     param_dict['cnn_options'] = cnn_options
     return param_dict
 
