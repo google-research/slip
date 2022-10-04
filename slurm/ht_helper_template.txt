@@ -16,7 +16,7 @@
 ## Command(s) to run:
 module load gcc openmpi # or module load intel openmpi
 
-WORKDIR = /global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/
-TASKFILE = {taskfile}
+WORKDIR=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/
+TASKFILE={taskfile}
 
 ht_helper.sh -m "ml/tensorflow/2.5.0-py37" -t $TASKFILE -w $WORKDIR -L -v
