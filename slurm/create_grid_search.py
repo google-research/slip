@@ -151,7 +151,7 @@ def main(jsonfile):
 
 
     # write ht_helper taskfile to the job directory https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/hthelper-script/
-    taskfile_path = job_directory / Path('taskfile.json')
+    taskfile_path = job_directory / Path('taskfile.txt')
     create_taskfile_from_params(param_dicts, taskfile_path, job_directory)
     # read ht helper template.txt, add batch ID, add taskfile, write the sbatch script
     outfile = job_directory / Path('run_ht_helper.sh')
