@@ -25,16 +25,23 @@ def update_dict(input_dict: Dict, update_dict: Dict) -> Dict:
     return dict(input_dict, **update_dict)
 
 
-def get_params_json(global_defaults: Dict,
-                    global_options: Dict,
-                    local_defaults_list: Sequence[Dict],
-                    local_options_list: Sequence[Dict]) -> Sequence[str]:
+def expand_grid_params(global_defaults: Dict,
+                       global_options: Dict,
+                       local_defaults_list: Sequence[Dict],
+                       local_options_list: Sequence[Dict]) -> Sequence[str]:
+    """Returns a list of parameter dicts from all options expanded and global params appended to local params.
+
+        outfile: A filepath to write the job parameters.
+        defaults: A dictionary with atomic values.
+        options: A dictionary with iterable values.
+        TODO: update
+    """
     assert len(local_defaults_list) == len(local_options_list)
-    params_json_list = []
+    params_dict_list = []
     for local_defaults, local_options in zip(local_defaults_list, local_options_list):
         all_options = update_dict(global_options, local_options)
         for option in product_dict(**all_options):
             d = update_dict(option, local_defaults)
             d = update_dict(d, global_defaults)
-            params_json_list.append(json.dumps(d))
-    return params_json_list
+            params_dict_list.append(d)
+    return params_dict_list

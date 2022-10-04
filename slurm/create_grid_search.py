@@ -1,4 +1,6 @@
 """Script for generating a SLURM gridsearch."""
+import argparse
+from asyncio import create_task
 from datetime import datetime
 import json
 from os import PathLike
@@ -11,77 +13,8 @@ import slurm_utils
 
 LOG_DIRECTORY = '/global/scratch/projects/fc_songlab/nthomas/slip/log/'
 
-global_defaults = {
-    'fraction_adaptive_singles': None,
-    'fraction_reciprocal_adaptive_epistasis': None,
-    'normalize_to_singles': True,
-    'test_set_dir': '/global/scratch/projects/fc_songlab/nthomas/slip/data/',
-    'training_set_min_num_mutations': 1,
-    'training_set_max_num_mutations': 3,
-    'training_set_num_samples': 5000,
-    'training_set_include_singles': False,
-}
-
-global_options = {
-    'training_set_random_seed': list(range(20)),
-    'epistatic_horizon': [128.0, 256.0, 512.0],
-    'mogwai_filepath': ["/global/home/users/nthomas/git/slip/data/3bfo_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz",
-                        "/global/home/users/nthomas/git/slip/data/3gfb_1_A_model_state_dict.npz",
-                        ]
-}
-
-linear_defaults = {
-    'model_name': 'linear',
-    'model_random_seed': 0,
-    'ridge_fit_intercept': False
-}
-
-linear_options = {
-    'ridge_alpha': list(10**np.linspace(-3, 2, 11)),
-}
-
-cnn_defaults = {
-    'model_name': 'cnn',
-    'cnn_kernel_size': 5,
-    'cnn_hidden_size': 64,
-    'model_random_seed': 0,
-}
-
-cnn_options = {
-    'cnn_adam_learning_rate': list(10**np.linspace(-3, -2, 11)),
-    'cnn_batch_size': [64, 128],
-    'cnn_num_epochs': [100, 500, 1000],
-    'cnn_num_filters': [16, 32, 64],
-}
-
-local_defaults_list = [linear_defaults, cnn_defaults]
-local_options_list = [linear_options, cnn_options]
-
 SBATCH_TEMPLATE_FILEPATH = Path('run_experiment_template.txt')
-
-
-def write_regression_params(outfile: PathLike,
-                            global_defaults: Dict,
-                            global_options: Dict,
-                            local_defaults_list: Iterable[Dict],
-                            local_options_list: Iterable[Dict]) -> None:
-    """Writes a json of regression parameters.
-
-    Args:
-        outfile: A filepath to write the job parameters.
-        defaults: A dictionary with atomic values.
-        options: A dictionary with iterable values.
-
-
-    The intention is for the outfile to be in the same directory as the
-    run logs, so that logs can be compared to the parameters that generated them.
-    """
-    json_lines = slurm_utils.get_params_json(global_defaults, global_options, local_defaults_list, local_options_list)
-    with open(outfile, 'w') as f:
-        f.write('\n'.join(json_lines))
+HT_HELPER_TEMPLATE_FILEPATH = Path('ht_helper_template.txt')
 
 
 def get_batch_id() -> str:
@@ -89,7 +22,7 @@ def get_batch_id() -> str:
     return datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
 
-def write_sbatch_script(batch_id: str, template_filepath: PathLike, out_filepath: PathLike) -> None:
+def write_sbatch_script(template_filepath: PathLike, batch_id: str, out_filepath: PathLike) -> None:
     """Reads in a `template` and fills in the batch_id where necessary."""
     with open(template_filepath, 'r') as f:
         text = f.read()
@@ -97,6 +30,13 @@ def write_sbatch_script(batch_id: str, template_filepath: PathLike, out_filepath
     with open(out_filepath, 'w') as f:
         f.write(text)
 
+def write_ht_helper_sbatch_script(template_filepath: PathLike, batch_id: str, taskfile_path: PathLike, out_filepath: PathLike) -> None:
+    """Reads in a ht_helper submission `template` and formats it with batch id and taskfile."""
+    with open(template_filepath, 'r') as f:
+        text = f.read()
+    text = text.format(batch_id=batch_id, taskfile=str(taskfile_path))
+    with open(out_filepath, 'w') as f:
+        f.write(text)
 
 def write_options_and_defaults(directory: PathLike,
                                global_defaults: Dict,
@@ -117,6 +57,7 @@ def write_options_and_defaults(directory: PathLike,
             f.write('\n')
 
 
+
 def get_command_string(job_directory: PathLike) -> str:
     """Return the command string to submit parallel sbatch jobs."""
     command_string = "while read i ; "
@@ -124,8 +65,53 @@ def get_command_string(job_directory: PathLike) -> str:
     command_string += "done < {job_directory}/regression_params.json"
     return command_string.format(job_directory=job_directory)
 
+def get_ht_helper_command_string(job_directory: PathLike) -> str:
+    """Return the command string for submitting ht_helper job."""
+    return 'sbatch {job_directory}/run_ht_helper.sh'
 
-def main():
+
+###############
+## ht_helper_utilities
+taskfile_line_template = 'source activate slip; ./run_regression_main.py --kwargs_json="{kwargs_json}" --job_id=$HT_TASK_ID --output_dir={output_dir}'
+
+def create_taskfile_from_params(param_dicts, taskfile_path, output_dir):
+    """Create a taskfile for ht_helper from a json file of configuration keyword arguments.
+    """
+    with open(taskfile_path, 'w') as taskfile:
+        for param_dict in param_dicts:
+            line = taskfile_line_template.format(kwargs_json=json.dumps(param_dict), output_dir=output_dir)
+            taskfile.write(line)
+            taskfile.write('\n')
+
+
+def exponentiate_log10_param(params):
+    return [10**x for x in params]
+
+def process_raw_param_dict(raw_param_dict):
+    """Programatically update log10 parameters. Delete intermediate parameters."""
+    param_dict = {}
+    param_dict['global_defaults'] = raw_param_dict['global_defaults']
+    param_dict['global_options'] = raw_param_dict['global_options']
+    param_dict['linear_defaults'] = raw_param_dict['linear_defaults']
+    param_dict['cnn_defaults'] = raw_param_dict['cnn_defaults']
+
+    linear_log10_param = 'ridge_alpha_log10'
+    linear_options = raw_param_dict['linear_options'].copy()
+    linear_options['ridge_alpha'] = exponentiate_log10_param(raw_param_dict['linear_options'][linear_log10_param])
+    del linear_options[linear_log10_param]
+    param_dict['linear_options'] = linear_options
+
+    cnn_log10_param = 'cnn_adam_learning_rate_log10'
+    cnn_options = raw_param_dict['cnn_options'].copy()
+    cnn_options['cnn_adam_learning_rate'] = exponentiate_log10_param(raw_param_dict['cnn_options'][cnn_log10_param])
+    del cnn_options[cnn_log10_param]
+    param_dict['cnn_options'] = cnn_options
+    return param_dict
+
+### HT helper
+############################################################
+
+def main(jsonfile):
     """Main function for creating a gridsearch. Prints the submission command for ease of use."""
     # create batch ID
     batch_id = get_batch_id()
@@ -133,20 +119,58 @@ def main():
     job_directory = Path(LOG_DIRECTORY) / Path(batch_id)
     job_directory.mkdir()
 
+
+    # read parameter grid from a json file...
+    with open(jsonfile, 'r') as f:
+        raw_param_dict = json.load(f)
+    param_dict = process_raw_param_dict(raw_param_dict)
+
+    local_defaults_list = [param_dict['linear_defaults'], param_dict['cnn_defaults']]
+    local_options_list = [param_dict['linear_options'], param_dict['cnn_options']]
+
+    # expand full grid
+    param_dicts = slurm_utils.expand_grid_params(param_dict['global_defaults'],
+                                                param_dict['global_options'],
+                                                local_defaults_list,
+                                                local_options_list)
+
+
     # write regression_params to the job directory
     outfile = job_directory / Path('regression_params.json')
-    write_regression_params(outfile, global_defaults, global_options, local_defaults_list, local_options_list)
+    with open(outfile, 'w') as f:
+        f.write('\n'.join([json.dumps(d) for d in param_dicts]))
 
     # read in the experiment template and add the batch ID
     outfile = job_directory / Path('run_experiment.sh')
-    write_sbatch_script(batch_id, SBATCH_TEMPLATE_FILEPATH, outfile)
+    write_sbatch_script(SBATCH_TEMPLATE_FILEPATH, batch_id, outfile)
+
+
+    # write ht_helper taskfile to the job directory https://docs-research-it.berkeley.edu/services/high-performance-computing/user-guide/running-your-jobs/hthelper-script/
+    taskfile_path = job_directory / Path('taskfile.json')
+    create_taskfile_from_params(param_dicts, taskfile_path, job_directory)
+    # read ht helper template.txt, add batch ID, add taskfile, write the sbatch script
+    outfile = job_directory / Path('run_ht_helper.sh')
+    write_ht_helper_sbatch_script(HT_HELPER_TEMPLATE_FILEPATH, batch_id, taskfile_path, outfile)
+
+
+
 
     # write the options into a text file for human readability
-    write_options_and_defaults(job_directory, global_defaults, global_options, local_defaults_list, local_options_list)
+    write_options_and_defaults(job_directory,
+                               param_dict['global_defaults'],
+                               param_dict['global_options'],
+                               local_defaults_list,
+                               local_options_list)
 
+    print('sbatch')
     print(get_command_string(job_directory))
+    print('ht_helper')
+    print(get_ht_helper_command_string(job_directory))
     return job_directory
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Create a gridsearch directory for the grid job parameterized by the input json')
+    parser.add_argument('--jsonfile', type=str, help='A json file with gridsearch configuration')
+    args = parser.parse_args()
+    main(args.jsonfile)
