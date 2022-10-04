@@ -8,7 +8,7 @@
 #SBATCH --time=06:00:00
 #
 # Tasks per node
-#SBATCH --ntasks-per-node=24
+#SBATCH --ntasks-per-node=2
 #
 # Nodes
 #SBATCH --nodes=2

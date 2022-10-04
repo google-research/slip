@@ -11,17 +11,15 @@
                      "mogwai_filepath": "/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz"},
  "global_options": {},
  "linear_defaults": {"model_name": "linear",
-                     "model_random_seed": 0,
                      "ridge_fit_intercept": false,
                      "ridge_alpha": 0.01},
- "linear_options": {},
+ "linear_options": {"model_random_seed": [0, 1]},
  "cnn_defaults": {"model_name": "cnn",
                   "cnn_kernel_size": 5,
                   "cnn_hidden_size": 64,
-                  "model_random_seed": 0,
                   "cnn_adam_learning_rate": 0.01,
                   "cnn_batch_size": 64,
                   "cnn_num_epochs": 100,
-                  "cnn_num_filtesr": 16},
- "cnn_options": {}
+                  "cnn_num_filters": 16},
+ "cnn_options": {"model_random_seed": [0, 1]}
 }
