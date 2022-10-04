@@ -6,17 +6,16 @@
 #SBATCH --qos=savio_lowprio
 #SBATCH --partition=savio3_htc
 #SBATCH --time=06:00:00
-#
-# Tasks per node
 #SBATCH --ntasks-per-node=2
-#
-# Nodes
 #SBATCH --nodes=2
 #
-## Command(s) to run:
-module load gcc openmpi # or module load intel openmpi
+#SBATCH --output=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/%j.out
+#SBATCH --error=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/%j.err
 
-WORKDIR=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/
+## Command(s) to run:
+module load gcc openmpi
+
+WORKDIR=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}
 TASKFILE={taskfile}
 
-ht_helper.sh -m "ml/tensorflow/2.5.0-py37" -t $TASKFILE -w $WORKDIR -L -v
+ht_helper.sh -t $TASKFILE -w $WORKDIR -L -v
