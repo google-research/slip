@@ -72,7 +72,7 @@ def get_ht_helper_command_string(job_directory: PathLike) -> str:
 
 ###############
 ## ht_helper_utilities
-taskfile_line_template = 'module unload python; module load ml/tensorflow/2.5.0-py37; source activate slip; stdbuf -o0 -e0 python /global/home/users/nthomas/git/slip-upstream/run_regression_main.py --kwargs_json="{kwargs_json}" --job_id=$HT_TASK_ID --output_dir={output_dir}'
+taskfile_line_template = "module unload python; module unload cuda; module load ml/tensorflow/2.5.0-py37; source activate slip; stdbuf -o0 -e0 python /global/home/users/nthomas/git/slip-upstream/run_regression_main.py --kwargs_json='{kwargs_json}' --job_id=$HT_TASK_ID --output_dir={output_dir}"
 
 def create_taskfile_from_params(param_dicts, taskfile_path, output_dir):
     """Create a taskfile for ht_helper from a json file of configuration keyword arguments.
