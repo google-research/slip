@@ -67,7 +67,7 @@ def get_command_string(job_directory: PathLike) -> str:
 
 def get_ht_helper_command_string(job_directory: PathLike) -> str:
     """Return the command string for submitting ht_helper job."""
-    return 'sbatch {job_directory}/run_ht_helper.sh'
+    return 'sbatch {job_directory}/run_ht_helper.sh'.format(job_directory=job_directory)
 
 
 ###############
