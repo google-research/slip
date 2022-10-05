@@ -3,19 +3,20 @@
 # Job name:
 #SBATCH --job-name=slip
 #SBATCH --account=co_songlab
-#SBATCH --qos=savio_lowprio
+#SBATCH --qos=songlab_htc3_normal
 #SBATCH --partition=savio3_htc
 #SBATCH --time=06:00:00
-#SBATCH --ntasks-per-node=2
-#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=40
+#SBATCH --nodes=24
 #
 #SBATCH --output=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/%j.out
 #SBATCH --error=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/%j.err
 
 ## Command(s) to run:
+module purge
 module load gcc openmpi
 
 WORKDIR=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}
 TASKFILE={taskfile}
 
-ht_helper.sh -t $TASKFILE -w $WORKDIR -L -v
+ht_helper.sh -t $TASKFILE -w $WORKDIR -L -v -m ml/tensorflow/2.5.0-py37
