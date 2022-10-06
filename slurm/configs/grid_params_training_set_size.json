@@ -10,9 +10,9 @@
                     "epistatic_horizon": [2.0, 1024.0],
                     "mogwai_filepath": ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
                                         "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz",
-                                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz",],
+                                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz"],
                     "training_set_num_samples": [100, 500, 1000, 5000, 10000, 50000],
-                    "training_set_include_singles": [true, false],
+                    "training_set_include_singles": [true, false]
                 },
  "linear_defaults": {"model_name": "linear",
                      "model_random_seed": 0,
