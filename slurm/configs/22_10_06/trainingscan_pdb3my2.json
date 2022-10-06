@@ -1,28 +1,28 @@
 {"global_defaults": {"fraction_adaptive_singles": null,
-                     "fraction_reciprocal_adaptive_epistasis": null,
-                     "epistatic_horizon": null,
+                     "fraction_reciprocal_adaptive_epistasis": 0.84,
                      "normalize_to_singles": true,
                      "test_set_dir": "/global/scratch/projects/fc_songlab/nthomas/slip/data/",
                      "training_set_min_num_mutations": 1,
-                     "training_set_max_num_mutations": 3
+                     "training_set_max_num_mutations": 3,
+                     "training_set_include_singles": false,
+                     "mogwai_filepath": "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz"
                     },
  "global_options": {"training_set_random_seed": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
                     "epistatic_horizon": [2.0, 1024.0],
-                    "mogwai_filepath": ["/global/home/users/nthomas/git/slip/data/3er7_1_A_model_state_dict.npz",
-                                        "/global/home/users/nthomas/git/slip/data/3my2_1_A_model_state_dict.npz",
-                                        "/global/home/users/nthomas/git/slip/data/5hu4_1_A_model_state_dict.npz",],
-                    "training_set_num_samples": [100, 500, 1000, 5000, 10000, 50000],
-                    "training_set_include_singles": [true, false],
-                },
+                    "training_set_num_samples": [100, 500, 1000, 5000, 10000, 50000]
+                   },
  "linear_defaults": {"model_name": "linear",
                      "model_random_seed": 0,
-                     "ridge_fit_intercept": false},
+                     "ridge_fit_intercept": false
+                    },
  "linear_options": {"ridge_alpha_log10": [-3.0, -2.5, -2.0, -1.5, -1.0 , -0.5,  0.0,  0.5,  1.0,  1.5,  2.0]},
  "cnn_defaults": {"model_name": "cnn",
                   "cnn_kernel_size": 5,
                   "cnn_hidden_size": 64,
-                  "model_random_seed": 0},
+                  "model_random_seed": 0
+                },
  "cnn_options": {"cnn_adam_learning_rate_log10": [-3.0 , -2.9, -2.8, -2.7, -2.6, -2.5, -2.4, -2.3, -2.2, -2.1, -2.0],
                  "cnn_batch_size": [64, 128],
                  "cnn_num_epochs": [100, 500, 1000],
-                 "cnn_num_filters": [16, 32, 64]}}
+                 "cnn_num_filters": [16, 32, 64]}
+}
