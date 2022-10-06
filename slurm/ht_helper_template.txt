@@ -3,7 +3,7 @@
 # Job name:
 #SBATCH --job-name=slip
 #SBATCH --account=co_songlab
-#SBATCH --qos=songlab_htc3_normal
+#SBATCH --qos=savio_lowprio
 #SBATCH --partition=savio3_htc
 #SBATCH --time=100:00:00
 #SBATCH --ntasks-per-node=40
