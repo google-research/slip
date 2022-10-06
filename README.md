@@ -31,3 +31,6 @@ To run the unit tests:
 bash -c 'for f in *_test.py; do python3 $f || exit 1; done'
 ```
 
+## Example Usage
+
+See this [colab](https://colab.research.google.com/drive/1BkR2KvvjgzUTJg5VO3BsuTPSDjQisnbJ#scrollTo=XZSfuWjS7cMM) for an example of using a landscape.
