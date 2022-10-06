@@ -5,9 +5,9 @@
 #SBATCH --account=co_songlab
 #SBATCH --qos=songlab_htc3_normal
 #SBATCH --partition=savio3_htc
-#SBATCH --time=72:00:00
+#SBATCH --time=100:00:00
 #SBATCH --ntasks-per-node=40
-#SBATCH --nodes=5
+#SBATCH --nodes=4
 #
 #SBATCH --output=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/%j.out
 #SBATCH --error=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/%j.err
