@@ -18,6 +18,9 @@
 # Output
 #SBATCH --output=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/regression_%j.out
 #SBATCH --error=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/regression_%j.err
+#
+#SBATCH --exclude=n0182.savio3,n0190.savio3
+
 ## Command(s) to run:
 module unload python
 module load ml/tensorflow/2.5.0-py37
