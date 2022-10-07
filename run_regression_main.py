@@ -20,12 +20,12 @@ MODEL_CONFIGURATION_KWARGS = (
     'cnn_hidden_size',
     'cnn_adam_learning_rate')
 
-def get_model_kwargs_dict(kwargs: Dict, model_configuration_kwargs: Iterable):
+def get_model_kwargs_dict(kwarg_dict, model_configuration_kwargs: Iterable):
     """Move all keyword arguments corresponding to `model_configuration_kwargs` from `kwargs` to a separate dictionary."""
     model_kwargs = {}
     for name in model_configuration_kwargs:
-        if name in kwargs:
-            model_kwargs[name] = kwargs[name]
+        if name in kwarg_dict:
+            model_kwargs[name] = kwarg_dict[name]
     return model_kwargs
 
 def main(kwargs_json, output_dir, job_id):
