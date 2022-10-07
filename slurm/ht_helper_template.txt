@@ -17,6 +17,8 @@ module purge
 module load gcc openmpi
 source activate slip
 
+echo $SLURM_NODELIST
+
 WORKDIR=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}
 TASKFILE={taskfile}
 
