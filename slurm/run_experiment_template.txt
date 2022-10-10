@@ -3,7 +3,7 @@
 # Job name:
 #SBATCH --job-name=slip
 #SBATCH --account=co_songlab
-#SBATCH --qos=songlab_htc3_normal
+#SBATCH --qos=savio_lowprio
 #SBATCH --partition=savio3_htc
 #
 # Number of tasks: https://github.com/ucberkeley/savio-training-parallel-2016/blob/master/parallel.md#parallel-job-submission
