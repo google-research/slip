@@ -4,7 +4,7 @@ This is not an officially supported Google product.
 ![](https://github.com/google-research/slip/workflows/Build/badge.svg)
 
 SLIP is a sandbox environment for engineering protein sequences with
-synthetic fitness functions.
+synthetic fitness functions. See our [preprint](https://www.biorxiv.org/content/10.1101/2022.10.28.514293v1)
 
 ## Status
 
