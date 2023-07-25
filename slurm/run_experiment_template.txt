@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Job name:
+#SBATCH --job-name=slip
+#SBATCH --account=co_songlab
+#SBATCH --qos=savio_lowprio
+#SBATCH --partition=savio3_htc
+#
+# Number of tasks: https://github.com/ucberkeley/savio-training-parallel-2016/blob/master/parallel.md#parallel-job-submission
+#SBATCH --ntasks=1
+#
+# Processors per task:
+#SBATCH --cpus-per-task=1
+#
+# Wall clock limit:
+#SBATCH --time=06:00:00
+#
+# Output
+#SBATCH --output=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/regression_%j.out
+#SBATCH --error=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/regression_%j.err
+## Command(s) to run:
+module unload python
+module load ml/tensorflow/2.5.0-py37
+source activate slip
+echo "loaded environment"
+stdbuf -o0 -e0 python /global/home/users/nthomas/git/slip-upstream/run_regression_main.py --kwargs_json="$1" --output_dir=/global/scratch/projects/fc_songlab/nthomas/slip/log/{batch_id}/ --job_id=$SLURM_JOB_ID
