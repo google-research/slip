@@ -33,4 +33,4 @@ See this [colab](https://colab.research.google.com/drive/1BkR2KvvjgzUTJg5VO3BsuT
 
 ## Constructing a new landscape
 
-All landscapes were constructed using [Mogwai](https://github.com/songlab-cal/mogwai). See that repo's [example](https://github.com/songlab-cal/mogwai/blob/main/examples/gremlin_train.ipynb), which shows how to train a new Potts model and how to (optionally) examine contact accuracy after training. All that is required is an alignment in .a3m format, true contacts are not required (e.g. as in this [colab](https://github.com/songlab-cal/slc22a5/blob/main/slc22a5_train_potts.ipynb). 
+All landscapes were constructed using [Mogwai](https://github.com/songlab-cal/mogwai). See that repo's [example](https://github.com/songlab-cal/mogwai/blob/main/examples/gremlin_train.ipynb), which shows how to train a new Potts model and how to (optionally) examine contact accuracy after training. All that is required is an alignment in .a3m format, true contacts are not required (e.g. as in this [colab](https://github.com/songlab-cal/slc22a5/blob/main/slc22a5_train_potts.ipynb)). 
